@@ -9,26 +9,23 @@
 <div class="details-container">
     <img class="player-image-large" src="@Model.BigImageUrl" alt="Player Image" />
     <div class="player-title">@Model.PlayerName</div>
-    <div class="player-description">
-        @Model.Description
-    </div>
+    <div class="player-description">@Model.Description</div>
 
     <div class="review-section">
         <div class="review-heading">Reviews</div>
         <div class="stars">
-            <span class="star">&#9733;</span>
-            <span class="star">&#9733;</span>
-            <span class="star">&#9733;</span>
-            <span class="star">&#9733;</span>
-            <span class="star">&#9733;</span>
+            @for (int i = 0; i < 5; i++)
+            {
+                <span class="star">@(i < Model.Reviews.Average(r => r.StarRating) ? "★" : "☆")</span>
+            }
         </div>
         <div class="review-list">
-            <div class="review-item">
-                <strong>ProGamer:</strong> Great team player, carried me through tough matches.
-            </div>
-            <div class="review-item">
-                <strong>NoobSlayer:</strong> A bit expensive, but absolutely worth it.
-            </div>
+            @foreach (var review in Model.Reviews)
+            {
+                <div class="review-item">
+                    <strong>@review.ReviewerName:</strong> @review.Comment
+                </div>
+            }
         </div>
     </div>
 </div>
