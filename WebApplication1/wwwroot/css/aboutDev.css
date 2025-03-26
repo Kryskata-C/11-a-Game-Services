@@ -1,0 +1,57 @@
+﻿body {
+    background-color: #121212;
+    color: #ffffff;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+    margin: 0;
+}
+
+h1 {
+    animation: fadeInDown 1.5s ease;
+    font-size: 3rem;
+}
+
+p,
+h2 {
+    animation: fadeInUp 2s ease;
+}
+
+.text-highlight {
+    color: #ffac41;
+    font-weight: bold;
+    animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 5px #ffac41;
+    }
+
+    to {
+        text-shadow: 0 0 20px #ffac41;
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

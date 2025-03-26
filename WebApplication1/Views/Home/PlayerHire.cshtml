@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "Hire a Player";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/playerHire.css" />
+
+<div class="players-container">
+    <div class="player-card">
+        <div class="player-image" style="background-image: url('/Nasko_Small.jpeg'); background-size: cover; background-position: center;"></div>
+        <div class="player-name">Atanas (Cenkata)</div>
+        <div class="player-price">Price: $3,500/hour</div>
+        <div class="brawl-stats">
+            <p>Cups: 58,069</p>
+            <p>Max Ranks: 36</p>
+            <p>Times Hired: 126</p>
+        </div>
+        <a href="#" class="hire-btn">Hire</a>
+        <a href="@Url.Action("PlayerInfo", "Home", new { playerName = "Atanas (Cenkata)" })" class="info-btn">Info</a>
+    </div>
+
+    <div class="player-card">
+        <div class="player-image"></div>
+        <div class="player-name">Boris (shefa na relefa)</div>
+        <div class="player-price">Price: $2,800/hour</div>
+        <div class="brawl-stats">
+            <p>Cups: 46,812</p>
+            <p>Max Ranks: 28</p>
+            <p>Times Hired: 123</p>
+        </div>
+        <a href="#" class="hire-btn">Hire</a>
+        <a href="@Url.Action("PlayerInfo", "Home", new { playerName = "Boris (shefa na relefa)" })" class="info-btn">Info</a>
+    </div>
+
+    <div class="player-card">
+        <div class="player-image" style="background-image: url('/Ary_Small.jpeg'); background-size: cover; background-position: center;"></div>
+        <div class="player-name">Aryaan (Ary)</div>
+        <div class="player-price">Price: $3,000/hour</div>
+        <div class="brawl-stats">
+            <p>Cups: 38,280</p>
+            <p>Max Ranks: 23</p>
+            <p>Times Hired: 176</p>
+        </div>
+        <a href="#" class="hire-btn">Hire</a>
+        <a href="@Url.Action("PlayerInfo", "Home", new { playerName = "Aryaan (Ary)" })" class="info-btn">Info</a>
+    </div>
+
+    <div class="player-card">
+        <div class="player-image"></div>
+        <div class="player-name">Nikolay (гоуемия)</div>
+        <div class="player-price">Price: $5,000/hour</div>
+        <div class="brawl-stats">
+            <p>Cups: 37,643</p>
+            <p>Max Ranks: 21</p>
+            <p>Times Hired: 193</p>
+        </div>
+        <a href="#" class="hire-btn">Hire</a>
+        <a href="@Url.Action("PlayerInfo", "Home", new { playerName = "Nikolay (гоuemия)" })" class="info-btn">Info</a>
+    </div>
+
+    <div class="player-card">
+        <div class="player-image"></div>
+        <div class="player-name">Maxi (Dragon)</div>
+        <div class="player-price">Price: $100/hour</div>
+        <div class="brawl-stats">
+            <p>Cups: 37,373</p>
+            <p>Max Ranks: 14</p>
+            <p>Times Hired: 68</p>
+        </div>
+        <a href="#" class="hire-btn">Hire</a>
+        <a href="@Url.Action("PlayerInfo", "Home", new { playerName = "Maxi (Dragon)" })" class="info-btn">Info</a>
+    </div>
+
+    <div class="player-card">
+        <div class="player-image"></div>
+        <div class="player-name">Vaseto (....)</div>
+        <div class="player-price">Price: $1000/hour</div>
+        <div class="brawl-stats">
+            <p>Cups: 38,352</p>
+            <p>Max Ranks: 9</p>
+            <p>Times Hired: 97</p>
+        </div>
+        <a href="#" class="hire-btn">Hire</a>
+        <a href="@Url.Action("PlayerInfo", "Home", new { playerName = "Vaseto (....)" })" class="info-btn">Info</a>
+    </div>
+
+    <div class="player-card">
+        <div class="player-image"></div>
+        <div class="player-name">Christian (kryskata)</div>
+        <div class="player-price">Price: $10/hour</div>
+        <div class="brawl-stats">
+            <p>Cups: 7,444</p>
+            <p>Max Ranks: 2</p>
+            <p>Times Hired: 3</p>
+        </div>
+        <a href="#" class="hire-btn">Hire</a>
+        <a href="@Url.Action("PlayerInfo", "Home", new { playerName = "Christian (kryskata)" })" class="info-btn">Info</a>
+    </div>
+</div>

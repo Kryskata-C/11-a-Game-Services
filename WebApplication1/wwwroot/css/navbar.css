@@ -1,0 +1,27 @@
+﻿.custom-navbar {
+    background-color: #1e1e1e !important;
+    color: white;
+    animation: slideDown 1s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.navbar-brand, .nav-link {
+    color: white !important;
+    transition: color 0.3s;
+}
+
+    .navbar-brand:hover, .nav-link:hover {
+        color: #00bcd4 !important;
+    }
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

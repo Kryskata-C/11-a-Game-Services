@@ -1,0 +1,34 @@
+﻿@model WebApplication1.Controllers.PlayerDetailViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = Model.PlayerName;
+}
+
+<link rel="stylesheet" href="~/css/playerInfo.css" />
+
+<div class="details-container">
+    <img class="player-image-large" src="@Model.BigImageUrl" alt="Player Image" />
+    <div class="player-title">@Model.PlayerName</div>
+    <div class="player-description">
+        @Model.Description
+    </div>
+
+    <div class="review-section">
+        <div class="review-heading">Reviews</div>
+        <div class="stars">
+            <span class="star">&#9733;</span>
+            <span class="star">&#9733;</span>
+            <span class="star">&#9733;</span>
+            <span class="star">&#9733;</span>
+            <span class="star">&#9733;</span>
+        </div>
+        <div class="review-list">
+            <div class="review-item">
+                <strong>ProGamer:</strong> Great team player, carried me through tough matches.
+            </div>
+            <div class="review-item">
+                <strong>NoobSlayer:</strong> A bit expensive, but absolutely worth it.
+            </div>
+        </div>
+    </div>
+</div>

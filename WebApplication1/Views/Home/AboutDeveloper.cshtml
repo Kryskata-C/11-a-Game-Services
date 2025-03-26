@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "About Developer";
+}
+
+<link rel="stylesheet" href="~/css/aboutDev.css" />
+
+<div class="text-center" style="position: relative; z-index: 1; margin-top: 50px;">
+    <h1 class="display-4" style="animation: fadeInDown 1.5s ease;">About Developer</h1>
+
+    <div class="card bg-dark text-light mx-auto mt-5" style="max-width: 600px;">
+        <div class="card-body">
+            <h2 class="text-highlight" style="animation: fadeInUp 2s ease; animation-delay: 0.5s;">
+                Name: Christian Angelov
+            </h2>
+            <h2 class="text-highlight" style="animation: fadeInUp 2s ease; animation-delay: 1s;">
+                Age: 17
+            </h2>
+            <p style="animation: fadeInUp 2s ease; animation-delay: 1.5s;">
+                Christian is a passionate developer with a keen interest in ASP.NET
+                and a constant desire to learn and grow in the field.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="rain"></div>
+<script>
+    const rain = document.querySelector('.rain');
+    for (let i = 0; i < 200; i++) {
+        const drop = document.createElement('div');
+        drop.className = 'drop';
+        drop.style.left = `${Math.random() * 100}vw`;
+        drop.style.animationDuration = `${0.5 + Math.random() * 0.5}s`;
+        drop.style.animationDelay = `${Math.random() * 5}s`;
+        rain.appendChild(drop);
+    }
+</script>

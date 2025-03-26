@@ -1,0 +1,84 @@
+﻿.players-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 40px;
+    justify-content: center;
+}
+
+.player-card {
+    background: #1e1e1e;
+    border-radius: 8px;
+    width: 300px;
+    text-align: center;
+    padding: 20px;
+}
+
+.player-image {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    background: #333333;
+}
+
+.player-name {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+}
+
+.player-price {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.player-description {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+.brawl-stats {
+    background: #2b2b2b;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+    .brawl-stats p {
+        margin: 5px 0;
+        font-weight: bold;
+        color: #ffcc00;
+    }
+
+.hire-btn {
+    display: inline-block;
+    background: #28a745;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+    margin-top: 15px;
+}
+
+    .hire-btn:hover {
+        background: #36bf5d;
+    }
+
+.info-btn {
+    display: inline-block;
+    background: #ffffff;
+    color: #121212;
+    text-decoration: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+    margin-top: 15px;
+    margin-left: 10px;
+}
+
+    .info-btn:hover {
+        background: #cccccc;
+    }
