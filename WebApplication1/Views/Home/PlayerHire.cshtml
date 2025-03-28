@@ -3,29 +3,29 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" href="~/css/playerHire.css" />
+<link rel="stylesheet" href="~/css/playerHire.css" asp-append-version="true" />
 
 <div class="players-container">
     @foreach (var player in new[] {
-        new { Name = "Atanas (Cenkata)", Price = 3500, Cups = 58069, MaxRanks = 36, TimesHired = 126, Image = "/Nasko_Small.jpeg" },
-        new { Name = "Boris (shefa na relefa)", Price = 2800, Cups = 46812, MaxRanks = 28, TimesHired = 123, Image = "/Bobi_Small.jpeg" },
-        new { Name = "Aryaan (Ary)", Price = 3000, Cups = 38280, MaxRanks = 23, TimesHired = 176, Image = "/Ary_Small.jpeg" },
-        new { Name = "Nikolay (гоuemия)", Price = 5000, Cups = 37643, MaxRanks = 21, TimesHired = 193, Image = "" },
-        new { Name = "Maxi (Dragon)", Price = 100, Cups = 37373, MaxRanks = 14, TimesHired = 68, Image = "" },
-        new { Name = "Vaseto (....)", Price = 1000, Cups = 38352, MaxRanks = 9, TimesHired = 97, Image = "" },
-        new { Name = "Christian (kryskata)", Price = 10, Cups = 7444, MaxRanks = 2, TimesHired = 3, Image = "" }
+    new { Name = "Atanas (Cenkata)", Price = 3500, Cups = 58069, MaxRanks = 36, TimesHired = 126, Image = "/Nasko_Small.jpeg" },
+    new { Name = "Boris (shefa na relefa)", Price = 2800, Cups = 46812, MaxRanks = 28, TimesHired = 123, Image = "/Bobi_Small.jpeg" },
+    new { Name = "Aryaan (Ary)", Price = 3000, Cups = 38280, MaxRanks = 23, TimesHired = 176, Image = "/Ary_Small.jpeg" },
+    new { Name = "Nikolay (гоuemия)", Price = 5000, Cups = 37643, MaxRanks = 21, TimesHired = 193, Image = "" },
+    new { Name = "Maxi (Dragon)", Price = 100, Cups = 37373, MaxRanks = 14, TimesHired = 68, Image = "" },
+    new { Name = "Vaseto (....)", Price = 1000, Cups = 38352, MaxRanks = 9, TimesHired = 97, Image = "" },
+    new { Name = "Christian (kryskata)", Price = 10, Cups = 7444, MaxRanks = 2, TimesHired = 3, Image = "" }
     })
     {
         <div class="player-card">
-            <div class="player-image" style="background-image: url('@player.Image'); background-size: cover; background-position: center;"></div>
-            <div class="player-name">@player.Name</div>
-            <div class="player-price">Price: $@player.Price/hour</div>
+            <img class="player-image" src="@(!string.IsNullOrEmpty(player.Image) ? player.Image : "/default_player.jpg")" alt="@player.Name" />
+            <h3 class="player-name">@player.Name</h3>
+            <p class="player-price">$@player.Price/hour</p>
             <div class="brawl-stats">
                 <p>Cups: @player.Cups</p>
                 <p>Max Ranks: @player.MaxRanks</p>
-                <p>Times Hired: @player.TimesHired</p>
+                <p>Hired: @player.TimesHired times</p>
             </div>
-            <a href="#" class="hire-btn">Hire</a>
+            <a href="@Url.Action("Basket", "Home", new { playerName = player.Name })" class="hire-btn">Hire</a>
             <a href="@Url.Action("PlayerInfo", "Home", new { playerName = player.Name })" class="info-btn">Info</a>
         </div>
     }

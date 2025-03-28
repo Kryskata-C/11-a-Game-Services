@@ -1,23 +1,34 @@
 ﻿@{
     ViewData["Title"] = "Team Hire";
 }
+<link rel="stylesheet" href="~/css/teamhire.css" asp-append-version="true" />
 
 <div class="container">
     <h1 class="header">Hire a Team</h1>
+
     <div class="team-card">
-        <img src="/images/team1.jpg" alt="Team Logo">
+        <span class="popular-deal">Popular Deal</span>
+        <img src="/AryBobi.jpeg" alt="Team Logo">
         <div class="team-info">
-            <h3>Elite Squad</h3>
-            <p>Top-tier competitive team with a proven track record.</p>
+            <h3>Ary-Nasko</h3>
+            <p>Two of 11-A class gaming's best and most competitive players'.</p>
+            <div class="price-tag">
+                <span class="price-original">$6500/hour</span>
+                <span class="price-discounted">$4000/hour</span>
+            </div>
             <button class="hire-btn">Hire</button>
         </div>
     </div>
 
     <div class="team-card">
-        <img src="/images/team2.jpg" alt="Team Logo">
+        <img src="/AryKryskata.jpg" alt="Team Logo">
         <div class="team-info">
-            <h3>Casual Warriors</h3>
+            <h3>Ary-Kryskata</h3>
             <p>Fun-loving team that still knows how to win!</p>
+            <div class="price-tag">
+                <span class="price-original">$3600</span>
+                <span class="price-discounted">$2800</span>
+            </div>
             <button class="hire-btn">Hire</button>
         </div>
     </div>

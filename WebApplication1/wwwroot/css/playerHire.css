@@ -1,75 +1,112 @@
 ﻿.players-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
-    padding: 40px;
+    gap: 25px;
+    padding: 50px;
     justify-content: center;
+    background-color: #121212;
+    animation: containerFadeIn 1.2s ease-in;
 }
 
 .player-card {
-    background: #1e1e1e;
-    border-radius: 8px;
-    width: 300px;
+    position: relative;
+    background: #2c2c2c;
+    border-radius: 15px;
+    width: 320px;
+    padding: 25px;
     text-align: center;
-    padding: 20px;
-}
-
-.player-image {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-bottom: 15px;
-    background: #333333;
-}
-
-.player-name {
-    font-size: 1.4rem;
-    margin-bottom: 10px;
-}
-
-.player-price {
-    font-size: 1.1rem;
-    margin-bottom: 5px;
-}
-
-.brawl-stats {
-    background: #2b2b2b;
-    border-radius: 4px;
-    padding: 10px;
-}
-
-    .brawl-stats p {
-        margin: 5px 0;
-        font-weight: bold;
-        color: #ffcc00;
-    }
-
-.hire-btn, .info-btn {
-    display: inline-block;
-    text-decoration: none;
-    padding: 10px 20px;
-    font-size: 1rem;
-    border-radius: 4px;
-    transition: background 0.3s ease;
-    margin-top: 15px;
-}
-
-.hire-btn {
-    background: #28a745;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     color: #ffffff;
 }
 
-    .hire-btn:hover {
-        background: #36bf5d;
+    .player-card:hover {
+        transform: translateY(-15px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.6);
     }
 
-.info-btn {
-    background: #ffffff;
-    color: #121212;
-    margin-left: 10px;
+.player-image {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 0 auto 20px;
+    border: 4px solid #ffcc00;
+    transition: transform 0.4s ease;
 }
 
-    .info-btn:hover {
-        background: #cccccc;
+.player-card:hover .player-image {
+    transform: scale(1.15);
+}
+
+.player-name {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    color: #ffcc00;
+}
+
+.player-price {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.brawl-stats {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+    .brawl-stats p {
+        margin: 4px 0;
+        font-weight: 500;
     }
+
+.hire-btn, .info-btn {
+    background: linear-gradient(135deg, #34d058, #28a745);
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0px 6px 10px rgba(0, 255, 0, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
+    margin: 5px;
+}
+
+    .hire-btn:hover, .info-btn:hover {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        transform: scale(1.1);
+        box-shadow: 0px 8px 15px rgba(0, 255, 0, 0.5);
+    }
+
+.popular-deal {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #ff4757;
+    color: white;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes containerFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

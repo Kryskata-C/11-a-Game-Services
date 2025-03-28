@@ -1,0 +1,105 @@
+﻿body {
+    background-color: #121212;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.basket-container {
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 40px;
+    background-color: #181818;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    border-radius: 10px;
+    animation: fadeIn 0.8s ease;
+}
+
+    .basket-container h2 {
+        font-size: 2rem;
+        color: #ffcc00;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+.basket-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+}
+
+    .basket-table th, .basket-table td {
+        padding: 15px 20px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+    }
+
+    .basket-table th {
+        background-color: #282828;
+        color: #ffcc00;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .basket-table tbody tr:hover {
+        background-color: #222222;
+    }
+
+.total-row td {
+    font-size: 1.2rem;
+    font-weight: bold;
+    background-color: #282828;
+    color: #ffcc00;
+}
+
+.continue-btn {
+    display: block;
+    width: fit-content;
+    margin: 30px auto 0;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #34d058, #28a745);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .continue-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 5px 12px rgba(0,255,0,0.3);
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+    }
+
+.empty-basket {
+    text-align: center;
+    color: #aaa;
+    font-size: 1.2rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .basket-table th, .basket-table td {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    .basket-container {
+        padding: 20px;
+    }
+
+        .basket-container h2 {
+            font-size: 1.6rem;
+        }
+}

@@ -1,0 +1,52 @@
+﻿    @model Dictionary<string, int>
+    @{
+        ViewData["Title"] = "Basket";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+        var playersPrices = ViewBag.PlayersPrices as Dictionary<string, int>;
+        var totalBasketPrice = 0;
+    }
+
+    <link rel="stylesheet" href="~/css/basket.css" asp-append-version="true" />
+
+    <div class="basket-container">
+        <h2>Your Basket</h2>
+
+        @if (Model != null && Model.Count > 0)
+        {
+            <table class="basket-table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Quantity</th>
+                        <th>Price per hour</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var playerTotalPrice = playersPrices[item.Key] * item.Value;
+                        totalBasketPrice += playerTotalPrice;
+                        <tr>
+                            <td>@item.Key</td>
+                            <td>@item.Value</td>
+                            <td>$@playersPrices[item.Key]</td>
+                            <td>$@playerTotalPrice</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="3">Basket Total:</td>
+                        <td>$@totalBasketPrice</td>
+                    </tr>
+                </tfoot>
+            </table>
+        }
+        else
+        {
+            <p class="empty-basket">Your basket is empty.</p>
+        }
+
+        <a href="@Url.Action("PlayerHire", "Home")" class="continue-btn">Continue Shopping</a>
+    </div>

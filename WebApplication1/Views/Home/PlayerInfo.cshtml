@@ -4,7 +4,8 @@
     ViewData["Title"] = Model.PlayerName;
 }
 
-<link rel="stylesheet" href="~/css/playerInfo.css" />
+<link rel="stylesheet" href="~/css/playerInfo.css" asp-append-version="true" />
+
 
 <div class="details-container">
     <img class="player-image-large" src="@Model.BigImageUrl" alt="Player Image" />
