@@ -119,50 +119,52 @@ namespace WebApplication1.Controllers
                 {
                     "Atanas (Cenkata)", new List<Review>
                     {
-                        new Review { ReviewerName = "ProGamer", Comment = "Elite player, but gets angry fast!", StarRating = 4 },
-                        new Review { ReviewerName = "NoobSlayer", Comment = "Carries games effortlessly!", StarRating = 5 }
+                        new Review { ReviewerName = "Ary", Comment = "Good player, but gets angry fast!", StarRating = 4 },
+                        new Review { ReviewerName = "Bobi", Comment = "Carries my games!", StarRating = 5 },
+                        new Review { ReviewerName = "Kryskata", Comment = "Terrible with bea!", StarRating = 1 }
                     }
                 },
                 {
                     "Boris (shefa na relefa)", new List<Review>
                     {
-                        new Review { ReviewerName = "TryHard", Comment = "Always has a game plan!", StarRating = 5 },
-                        new Review { ReviewerName = "CasualMaster", Comment = "Good teammate, but expensive!", StarRating = 4 }
+                        new Review { ReviewerName = "Maxi", Comment = "Always has a game plan!", StarRating = 5 },
+                        new Review { ReviewerName = "Nasko", Comment = "Good teammate, but expensive!", StarRating = 4 },
+                        new Review { ReviewerName = "Kryskata", Comment = "Dont have anything bad to say!", StarRating = 4 }
                     }
                 },
                 {
                     "Aryaan (Ary)", new List<Review>
                     {
-                        new Review { ReviewerName = "EliteShooter", Comment = "Best aim I've seen!", StarRating = 5 },
-                        new Review { ReviewerName = "Tactician", Comment = "Knows all the trick shots!", StarRating = 5 }
+                        new Review { ReviewerName = "Viktoria", Comment = "Best aim ever!", StarRating = 5 },
+                        new Review { ReviewerName = "Buba", Comment = "Knows all the trick shots!", StarRating = 5 }
                     }
                 },
                 {
                     "Nikolay (гоuemия)", new List<Review>
                     {
-                        new Review { ReviewerName = "Strategist", Comment = "Always thinking 3 steps ahead!", StarRating = 5 },
-                        new Review { ReviewerName = "CasualGamer", Comment = "A bit too serious but solid player!", StarRating = 4 }
+                        new Review { ReviewerName = "Emo", Comment = "Always thinking 3 steps ahead!", StarRating = 5 },
+                        new Review { ReviewerName = "Vasko", Comment = "A bit too serious!", StarRating = 4 }
                     }
                 },
                 {
                     "Maxi (Dragon)", new List<Review>
                     {
-                        new Review { ReviewerName = "ShadowAssassin", Comment = "Stealth skills are insane!", StarRating = 5 },
+                        new Review { ReviewerName = "Kryskata", Comment = "I dont know what to say except he is terrible!", StarRating = 1 },
                         new Review { ReviewerName = "Nightmare", Comment = "Never see him coming!", StarRating = 5 }
                     }
                 },
                 {
                     "Vaseto (....)", new List<Review>
                     {
-                        new Review { ReviewerName = "SupportMain", Comment = "Always got my back!", StarRating = 5 },
-                        new Review { ReviewerName = "TeamPlayer", Comment = "Plays for the win!", StarRating = 4 }
+                        new Review { ReviewerName = "Ivan_Bql", Comment = "Always got my back!", StarRating = 5 },
+                        new Review { ReviewerName = "Ivan_Cheren", Comment = "Plays for the win!", StarRating = 4 }
                     }
                 },
                 {
                     "Christian (kryskata)", new List<Review>
                     {
-                        new Review { ReviewerName = "RookieStar", Comment = "Still learning, but improving fast!", StarRating = 3 },
-                        new Review { ReviewerName = "Underdog", Comment = "Surprisingly good for a new player!", StarRating = 4 }
+                        new Review { ReviewerName = "Nasko", Comment = "Beats me every 1v1 best bea player ", StarRating = 3 },
+                        new Review { ReviewerName = "Niki", Comment = "Surprisingly good for a new player!", StarRating = 4 }
                     }
                 }
             };
