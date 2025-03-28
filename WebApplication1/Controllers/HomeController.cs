@@ -38,6 +38,47 @@ namespace WebApplication1.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Login(string username, string password)
+        {
+            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users.txt");
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                ViewBag.Message = "User storage not found.";
+                return View();
+            }
+
+            var lines = System.IO.File.ReadAllLines(filePath);
+
+            foreach (var line in lines)
+            {
+                var parts = line.Split(':');
+                if (parts.Length == 2)
+                {
+                    string storedUsername = parts[0];
+                    string storedPassword = parts[1];
+
+                    if (storedUsername == username && storedPassword == password)
+                    {
+                        HttpContext.Session.SetString("Username", username);
+                        return RedirectToAction("Index");
+                    }
+                }
+            }
+
+            ViewBag.Message = "Invalid username or password.";
+            return View();
+        }
+
+
+
         public IActionResult Basket(string playerName)
         {
             var playersPrices = new Dictionary<string, int>
