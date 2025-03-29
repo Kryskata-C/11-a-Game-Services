@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+
+<div class="login-container">
+    <h1 class="login-header">Register</h1>
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="login-error">@ViewBag.Message</div>
+    }
+
+    <form method="post" class="login-form">
+        <label for="username">Username</label>
+        <input type="text" name="username" required />
+
+        <label for="password">Password</label>
+        <input type="password" name="password" required />
+
+        <button type="submit" class="login-submit">Register</button>
+    </form>
+
+</div>

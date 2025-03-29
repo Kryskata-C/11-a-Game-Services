@@ -25,3 +25,12 @@
         opacity: 1;
     }
 }
+
+.topbar-profile-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #28a745;
+}
+

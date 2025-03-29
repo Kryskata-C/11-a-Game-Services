@@ -1,1 +1,1 @@
-admin:admin
+user "admin" { password: "admin", since: "2025-03-29", spent: 124125, mosthired: [], reviews: [] }
