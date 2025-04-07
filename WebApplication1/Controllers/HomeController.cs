@@ -207,7 +207,86 @@ namespace WebApplication1.Controllers
             return RedirectToAction("Login");
         }
 
-        // ... other actions unchanged ...
+        public IActionResult PlayerInfo(string playerName)
+        {
+            var reviewsDictionary = new Dictionary<string, List<Review>>
+    {
+        { "Atanas (Cenkata)", new List<Review> { new Review { ReviewerName = "Ivan", Comment = "Insanely good!", StarRating = 5 } } },
+        { "Boris (shefa na relefa)", new List<Review> { new Review { ReviewerName = "Mira", Comment = "Very strategic.", StarRating = 4 } } },
+        { "Aryaan (Ary)", new List<Review> { new Review { ReviewerName = "Toni", Comment = "Awesome trick shots.", StarRating = 5 } } },
+        { "Nikolay (гоuemия)", new List<Review> { new Review { ReviewerName = "Alex", Comment = "Very tactical player.", StarRating = 5 } } },
+        { "Maxi (Dragon)", new List<Review> { new Review { ReviewerName = "Maria", Comment = "Catches you off guard.", StarRating = 4 } } },
+        { "Vaseto (....)", new List<Review> { new Review { ReviewerName = "Stoyan", Comment = "Great support!", StarRating = 4 } } },
+        { "Christian (kryskata)", new List<Review> { new Review { ReviewerName = "Niki", Comment = "New but skilled.", StarRating = 3 } } },
+    };
+
+            var model = new PlayerDetailViewModel();
+
+            switch (playerName)
+            {
+                case "Atanas (Cenkata)":
+                    model.PlayerName = playerName;
+                    model.BigImageUrl = "/Nasko_Big.jpeg";
+                    model.Description = "An elite Brawl Stars player with anger issues.";
+                    model.Reviews = reviewsDictionary[playerName];
+                    break;
+
+                case "Boris (shefa na relefa)":
+                    model.PlayerName = playerName;
+                    model.BigImageUrl = "/Bobi_Big.jpeg";
+                    model.Description = "A strategic Brawl Stars player on whom you can rely to save your game.";
+                    model.Reviews = reviewsDictionary[playerName];
+                    break;
+
+                case "Aryaan (Ary)":
+                    model.PlayerName = playerName;
+                    model.BigImageUrl = "/Ary_Big.jpeg";
+                    model.Description = "Renowned for precise aim and amazing trick-shots.";
+                    model.Reviews = reviewsDictionary[playerName];
+                    break;
+
+                case "Nikolay (гоuemия)":
+                    model.PlayerName = playerName;
+                    model.BigImageUrl = "/images/nikolay-large.png";
+                    model.Description = "Dominates high-level matches with his tactical brilliance...";
+                    model.Reviews = reviewsDictionary[playerName];
+                    break;
+
+                case "Maxi (Dragon)":
+                    model.PlayerName = playerName;
+                    model.BigImageUrl = "/images/maxi-large.png";
+                    model.Description = "Loves to surprise opponents with sneaky ambushes...";
+                    model.Reviews = reviewsDictionary[playerName];
+                    break;
+
+                case "Vaseto (....)":
+                    model.PlayerName = playerName;
+                    model.BigImageUrl = "/images/vaseto-large.png";
+                    model.Description = "Specializes in support roles, ensuring team victories...";
+                    model.Reviews = reviewsDictionary[playerName];
+                    break;
+
+                case "Christian (kryskata)":
+                    model.PlayerName = playerName;
+                    model.BigImageUrl = "/images/christian-large.png";
+                    model.Description = "New to the pro scene but improving rapidly...";
+                    model.Reviews = reviewsDictionary[playerName];
+                    break;
+
+                default:
+                    model.PlayerName = "Unknown Player";
+                    model.BigImageUrl = "/images/unknown.png";
+                    model.Description = "No information found.";
+                    model.Reviews = new List<Review>
+            {
+                new Review { ReviewerName = "System", Comment = "No reviews available.", StarRating = 0 }
+            };
+                    break;
+            }
+
+            return View(model);
+        }
+
     }
 
     public class PlayerDetailViewModel
