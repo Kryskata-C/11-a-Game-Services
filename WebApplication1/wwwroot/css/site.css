@@ -64,3 +64,22 @@ p {
     .cta-btn:hover {
         background: #cccccc;
     }
+
+.user-funds {
+    background-color: #222;
+    padding: 8px 18px;
+    border-radius: 20px;
+    color: #00ffcc;
+    font-weight: 600;
+    font-size: 18px;
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    transition: all 0.3s ease-in-out;
+}
+    .user-funds:hover {
+        box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+        transform: scale(1.03);
+    }

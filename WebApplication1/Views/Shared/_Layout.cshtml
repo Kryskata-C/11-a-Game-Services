@@ -1,74 +1,122 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - 11-A Gaming</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/WebApplication1.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/navbar.css" />
-    <link rel="stylesheet" href="~/css/loginButton.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/loginButton.css" />
 
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .top-navbar {
+            background-color: #1a1a1a;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hamburger-btn {
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-funds {
+            background-color: #222;
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: #00ffcc;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 0 6px rgba(0, 255, 204, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .btn-login, .btn-register {
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .btn-login {
+            background-color: transparent;
+            border: 1px solid #ccc;
+            color: white;
+        }
+
+        .btn-register {
+            background-color: #00bcd4;
+            color: black;
+            border: none;
+        }
+
+            .btn-login:hover,
+            .btn-register:hover {
+                opacity: 0.9;
+            }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm custom-navbar">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">WebApplication1</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AboutDeveloper">About Developer</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="PlayerHire">Hire a Player</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link hire-team-btn" asp-area="" asp-controller="Home" asp-action="TeamHire">Hire a Team</a>
-                        </li>
-                        <li class="nav-item ms-auto">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Basket">
-                                🛒 Basket
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="User">
-                                <img src="/profile.jpg" alt="Profile" class="topbar-profile-icon" />
-                            </a>
-                        </li>
+    <header class="top-navbar">
+        <div class="navbar-left">
+            <button class="hamburger-btn" aria-label="Toggle Sidebar">
+                ☰
+            </button>
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">11-A Gaming</a>
+        </div>
 
-
-
-
-
-
-                    </ul>
-                </div>
-            </div>
-        </nav>
+        <div class="navbar-right">
+            <span class="user-funds">
+                $@((HttpContextAccessor.HttpContext?.Session.GetInt32("Funds") ?? 0).ToString("N2"))
+            </span>
+            <a class="btn btn-login" asp-controller="Home" asp-action="Login">Login</a>
+            <a class="btn btn-register" asp-controller="Home" asp-action="Register">Register</a>
+        </div>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+    <div class="container-fluid pt-4">
+        @RenderBody()
     </div>
 
-@*     <footer class="border-top footer text-muted">
-        <div class="container">a
-            &copy; 2025 - WebApplication1 - <a asp-area="" asp-controller="Home" asp-action="AboutDeveloper">About Developer</a>
-        </div>
-    </footer> *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/site.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
