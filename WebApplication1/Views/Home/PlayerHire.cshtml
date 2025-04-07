@@ -25,8 +25,14 @@
                 <p>Max Ranks: @player.MaxRanks</p>
                 <p>Hired: @player.TimesHired times</p>
             </div>
-            <a href="@Url.Action("Basket", "Home", new { playerName = player.Name })" class="hire-btn">Hire</a>
+            <form asp-controller="Home" asp-action="AddToBasket" method="post" style="display:inline;">
+                <input type="hidden" name="playerName" value="@player.Name" />
+                <input type="hidden" name="price" value="@player.Price" />
+                <button type="submit" class="hire-btn">Hire</button>
+            </form>
+
             <a href="@Url.Action("PlayerInfo", "Home", new { playerName = player.Name })" class="info-btn">Info</a>
+
         </div>
     }
 </div>

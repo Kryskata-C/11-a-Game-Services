@@ -50,6 +50,57 @@ namespace WebApplication1.Controllers
             return View();
         }
 
+        public IActionResult Basket()
+        {
+            var basketJson = HttpContext.Session.GetString("Basket");
+            var priceJson = HttpContext.Session.GetString("Prices");
+
+            var basket = string.IsNullOrEmpty(basketJson)
+                ? new Dictionary<string, int>()
+                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(basketJson);
+
+            var prices = string.IsNullOrEmpty(priceJson)
+                ? new Dictionary<string, int>()
+                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(priceJson);
+
+            ViewBag.PlayersPrices = prices;
+
+            return View(basket);
+        }
+
+
+        [HttpPost]
+        public IActionResult AddToBasket(string playerName, int price)
+        {
+            var basketJson = HttpContext.Session.GetString("Basket");
+            var basket = string.IsNullOrEmpty(basketJson) ? new Dictionary<string, int>()
+                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(basketJson);
+
+            if (basket.ContainsKey(playerName))
+            {
+                basket[playerName]++;
+            }
+            else
+            {
+                basket[playerName] = 1;
+            }
+            HttpContext.Session.SetString("Basket", System.Text.Json.JsonSerializer.Serialize(basket));
+
+            var priceJson = HttpContext.Session.GetString("Prices");
+            var priceDict = string.IsNullOrEmpty(priceJson)
+                ? new Dictionary<string, int>()
+                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(priceJson);
+
+            priceDict[playerName] = price;
+            HttpContext.Session.SetString("Prices", System.Text.Json.JsonSerializer.Serialize(priceDict));
+
+            return RedirectToAction("Basket");
+        }
+
+
+
+
+
         [HttpPost]
         public IActionResult Register(string username, string password)
         {
