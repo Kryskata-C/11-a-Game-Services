@@ -133,7 +133,7 @@ namespace WebApplication1.Controllers
         public IActionResult Login(string username, string password)
         {
             string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users.txt");
-            HttpContext.Session.SetInt32("Funds", 100000); //For know until i make it dynamic with the user profile
+            HttpContext.Session.SetInt32("Funds", 100000); //For now until i make it dynamic with the user profile
             if (!System.IO.File.Exists(filePath))
             {
                 ViewBag.Message = "User storage not found.";

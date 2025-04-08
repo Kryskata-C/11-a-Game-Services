@@ -83,3 +83,17 @@ p {
         box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
         transform: scale(1.03);
     }
+
+.sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background-color: #181818;
+    transform: translateX(0);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+    position: relative;
+}
+
+    .sidebar.collapsed {
+        transform: translateX(-260px);
+    }
