@@ -2,6 +2,74 @@
     ViewData["Title"] = "Home Page";
 }
 
+<style>
+ heroTextGlow {
+    0%, 100% { text-shadow: 0 0 10px #00ff91, 0 0 20px #00ff91, 0 0 30px #00ff91; }
+    50% { text-shadow: 0 0 20px #00ff91, 0 0 30px #00ff91, 0 0 40px #00ff91; }
+}
+
+ subtleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+ fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px;
+    min-height: 70vh;
+    border-radius: 15px;
+    margin-top: 30px;
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 0 50px rgba(0, 255, 128, 0.2), 0 0 20px rgba(0, 255, 128, 0.3);
+    animation: fadeIn 1.5s ease-out;
+}
+
+.home-container .display-4 {
+    font-size: 4em;
+    color: #00ff91;
+    margin-bottom: 20px;
+    animation: heroTextGlow 2.5s infinite, fadeIn 2s ease-out;
+    font-weight: bold;
+}
+
+.home-container p {
+    font-size: 1.5em;
+    color: #d0ffd6;
+    max-width: 700px;
+    margin-bottom: 30px;
+    line-height: 1.6;
+    animation: fadeIn 2.5s ease-out;
+}
+
+.cta-btn {
+    padding: 15px 35px;
+    font-size: 1.3em;
+    color: #000;
+    background: linear-gradient(45deg, #00ff91, #00ffaa);
+    border: none;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 5px 20px rgba(0, 255, 144, 0.5);
+    animation: subtleFloat 3s infinite, fadeIn 3s ease-out;
+}
+
+.cta-btn:hover {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 255, 144, 0.8);
+}
+</style>
+
+
 <div class="home-container">
     <h1 class="display-4">
         11-A Gaming
