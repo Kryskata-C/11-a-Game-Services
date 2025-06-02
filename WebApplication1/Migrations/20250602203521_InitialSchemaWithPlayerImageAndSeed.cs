@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialSchemaWithPlayerImageAndSeed : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,6 +50,21 @@ namespace WebApplication1.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Teams",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Teams", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -165,12 +182,14 @@ namespace WebApplication1.Migrations
                     GamerTag = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RegistrationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastLoginDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Level = table.Column<int>(type: "int", nullable: false),
                     ExperiencePoints = table.Column<long>(type: "bigint", nullable: false),
                     VirtualCurrencyBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TeamId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -181,6 +200,48 @@ namespace WebApplication1.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Players_Teams_TeamId",
+                        column: x => x.TeamId,
+                        principalTable: "Teams",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.InsertData(
+                table: "AspNetRoles",
+                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
+                values: new object[] { "ADMIN_ROLE_GUID", null, "Admin", "ADMIN" });
+
+            migrationBuilder.InsertData(
+                table: "AspNetUsers",
+                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
+                values: new object[,]
+                {
+                    { "ADMIN_USER_GUID", 0, "24a6bc3f-c97b-4eaf-b117-72bec3ee0908", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEPq8iJrNz2D9JUTUUJaJTL01pyL7sHcryj/e8UQPSQ3PSf5THvSX/bafsNIRgfm/aA==", null, false, "6ccff6fa-a62a-4eb0-821e-bf33f9d026e3", false, "admin" },
+                    { "HERO_USER_GUID", 0, "8515d254-bd2c-431e-828b-36391bfd94f5", "hero@example.com", true, false, null, "HERO@EXAMPLE.COM", "HERO", "AQAAAAIAAYagAAAAEOnwIl+B1C6cp1L+uN+hRVaM6yDTgv0sRSCEIMPzxIABik17HNv3bT6SPqzYJSoGdg==", null, false, "03874ea1-852e-4e78-a222-b2cf6544bd1f", false, "hero" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Teams",
+                columns: new[] { "Id", "DateCreated", "Description", "Name" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(823), "The first team", "Team Alpha" },
+                    { 2, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(825), "The second team", "Team Bravo" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "AspNetUserRoles",
+                columns: new[] { "RoleId", "UserId" },
+                values: new object[] { "ADMIN_ROLE_GUID", "ADMIN_USER_GUID" });
+
+            migrationBuilder.InsertData(
+                table: "Players",
+                columns: new[] { "Id", "ApplicationUserId", "Description", "Email", "ExperiencePoints", "GamerTag", "ImageUrl", "LastLoginDate", "Level", "RegistrationDate", "TeamId", "VirtualCurrencyBalance" },
+                values: new object[,]
+                {
+                    { 1, "ADMIN_USER_GUID", "The admin's player profile", "admin@example.com", 10000L, "AdminPlayer", null, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(844), 10, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(844), 1, 500.00m },
+                    { 2, "HERO_USER_GUID", "A heroic player", "hero@example.com", 2500L, "HeroPlayer", null, null, 5, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(850), 2, 100.00m }
                 });
 
             migrationBuilder.CreateIndex(
@@ -233,6 +294,11 @@ namespace WebApplication1.Migrations
                 table: "Players",
                 column: "GamerTag",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Players_TeamId",
+                table: "Players",
+                column: "TeamId");
         }
 
         /// <inheritdoc />
@@ -261,6 +327,9 @@ namespace WebApplication1.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Teams");
         }
     }
 }

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250602191853_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250602211821_PlayerModelChangesFixWithImageUrlSeed")]
+    partial class PlayerModelChangesFixWithImageUrlSeed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -87,6 +87,24 @@ namespace WebApplication1.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "6f5f488d-6e4f-4a82-87ac-57056ad69dd5",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "354b610a-ffee-488f-af76-bf97dabc9281",
+                            Email = "admin@example.com",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@EXAMPLE.COM",
+                            NormalizedUserName = "ADMIN",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHpciOIyuetlGMr4xj5fmf1DEwfphkTBf7W3Fuwrg6/YGtKZ+J85Bsu2tlZrUrkZdQ==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "f2c77f4d-1bdf-4feb-b07d-49141adcee45",
+                            TwoFactorEnabled = false,
+                            UserName = "admin"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -114,6 +132,14 @@ namespace WebApplication1.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "84272d0d-9612-4ec0-9f25-332e001b8d47",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -201,6 +227,13 @@ namespace WebApplication1.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "6f5f488d-6e4f-4a82-87ac-57056ad69dd5",
+                            RoleId = "84272d0d-9612-4ec0-9f25-332e001b8d47"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -230,48 +263,118 @@ namespace WebApplication1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("ExperiencePoints")
-                        .HasColumnType("bigint");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("GamerTag")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime?>("LastLoginDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Level")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("RegistrationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("VirtualCurrencyBalance")
+                    b.Property<decimal>("PricePerHour")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("Id");
+                    b.Property<double>("Rating")
+                        .HasColumnType("float");
 
-                    b.HasIndex("ApplicationUserId")
-                        .IsUnique();
+                    b.Property<string>("Reviews")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("GamerTag")
                         .IsUnique();
 
+                    b.HasIndex("TeamId");
+
                     b.ToTable("Players");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Top tier player with 5 years of competitive experience.",
+                            GamerTag = "ProGamerX",
+                            ImageUrl = "https://example.com/images/progamerx.png",
+                            PricePerHour = 50.00m,
+                            Rating = 4.7999999999999998,
+                            Reviews = "Excellent communication and skill.",
+                            TeamId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Specializes in strategy and team coordination.",
+                            GamerTag = "StrategistSupreme",
+                            ImageUrl = "https://example.com/images/strategistsupreme.png",
+                            PricePerHour = 40.00m,
+                            Rating = 4.5,
+                            Reviews = "Great tactical mind, helped our team immensely.",
+                            TeamId = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Up and coming player, eager to learn and assist.",
+                            GamerTag = "NewTalent",
+                            ImageUrl = "https://example.com/images/newtalent.png",
+                            PricePerHour = 20.00m,
+                            Rating = 3.8999999999999999,
+                            Reviews = "Good potential, friendly and responsive.",
+                            TeamId = 1
+                        });
+                });
+
+            modelBuilder.Entity("Team", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Teams");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DateCreated = new DateTime(2025, 6, 2, 21, 18, 21, 125, DateTimeKind.Utc).AddTicks(3007),
+                            Description = "The first team",
+                            Name = "Team Alpha"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            DateCreated = new DateTime(2025, 6, 2, 21, 18, 21, 125, DateTimeKind.Utc).AddTicks(3008),
+                            Description = "The second team",
+                            Name = "Team Bravo"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -327,13 +430,16 @@ namespace WebApplication1.Migrations
 
             modelBuilder.Entity("Player", b =>
                 {
-                    b.HasOne("ApplicationUser", "ApplicationUser")
-                        .WithOne()
-                        .HasForeignKey("Player", "ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("Team", "Team")
+                        .WithMany("Players")
+                        .HasForeignKey("TeamId");
 
-                    b.Navigation("ApplicationUser");
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("Team", b =>
+                {
+                    b.Navigation("Players");
                 });
 #pragma warning restore 612, 618
         }

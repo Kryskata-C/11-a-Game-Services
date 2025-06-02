@@ -1,0 +1,84 @@
+﻿@model Player
+@{
+    ViewData["Title"] = "Edit Player";
+    // bool isAdmin = ViewBag.IsAdmin ?? false; // Uncomment if your view/layout uses ViewBag.IsAdmin
+}
+
+<h1>Edit Player</h1>
+
+<h4>Player: @Model.GamerTag</h4>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group mb-3">
+                <label asp-for="GamerTag" class="control-label"></label>
+                <input asp-for="GamerTag" class="form-control" />
+                <span asp-validation-for="GamerTag" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PricePerHour" class="control-label"></label>
+                <input asp-for="PricePerHour" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="PricePerHour" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Rating" class="control-label"></label>
+                <input asp-for="Rating" type="number" step="0.1" min="0" max="5" class="form-control" />
+                <span asp-validation-for="Rating" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Reviews" class="control-label"></label>
+                <textarea asp-for="Reviews" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Reviews" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ImageUrl" class="control-label"></label>
+                <input asp-for="ImageUrl" class="form-control" />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="TeamId" class="control-label">Team</label>
+                @* To make this a dropdown list:
+                1. In PlayersController.cs, in the Edit GET action (the one that takes "int? id"),
+                you need to fetch your list of teams and pass it to the view via ViewBag.
+                Example (add this before "return View(player);"):
+                ViewBag.TeamId = new SelectList(_context.Teams.OrderBy(t => t.Name), "Id", "Name", player.TeamId);
+                (This assumes you have access to your DbContext as "_context" in the controller.
+                If not, inject ApplicationDbContext into your PlayersController constructor.)
+
+                2. Then, change the <input> below to <select>:
+                <select asp-for="TeamId" class="form-control" asp-items="ViewBag.TeamId">
+                <option value="">-- No Team --</option>
+                </select>
+                *@
+                <input asp-for="TeamId" type="number" class="form-control" />
+                <span asp-validation-for="TeamId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-4">
+                <input type="submit" value="Save Changes" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

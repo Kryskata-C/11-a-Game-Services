@@ -1,0 +1,51 @@
+﻿@model IEnumerable<Player>
+@{
+    ViewData["Title"] = "Hire a Player";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool isAdmin = ViewBag.IsAdmin ?? false;
+}
+
+<link rel="stylesheet" href="~/css/playerHire.css" asp-append-version="true" />
+
+@if (isAdmin)
+{
+    <div style="margin-bottom: 20px;">
+        <a asp-controller="Players" asp-action="Create" class="btn btn-primary">Add New Player</a>
+    </div>
+}
+
+<div class="players-container">
+    @foreach (var player in Model)
+    {
+        <div class="player-card">
+            <img class="player-image" src="@(string.IsNullOrEmpty(player.ImageUrl) ? "/default_player.jpg" : player.ImageUrl)" alt="@player.GamerTag" />
+            <h3 class="player-name">@player.GamerTag</h3>
+            <p class="player-price">$@player.PricePerHour/hour</p> @* Updated from VirtualCurrencyBalance *@
+            <div class="brawl-stats">
+                @* You can rename this class if 'brawl-stats' is no longer fitting *@
+                <p>Rating: @player.Rating</p> @* Updated from Level *@
+                @* XP: @player.ExperiencePoints - Removed this line *@
+                <p>Team: @(player.Team?.Name ?? "N/A")</p>
+                @* You could also add player.Reviews or a snippet of player.Description here if desired *@
+                @* Example: <p>Reviews: @(player.Reviews?.Substring(0, Math.Min(player.Reviews.Length, 50)) ?? "No reviews") ...</p> *@
+            </div>
+
+            <form asp-controller="Home" asp-action="AddToBasket" method="post" style="display:inline-block; margin-right: 5px;">
+                <input type="hidden" name="playerName" value="@player.GamerTag" />
+                <input type="hidden" name="price" value="@player.PricePerHour" /> @* Updated from VirtualCurrencyBalance *@
+                <button type="submit" class="hire-btn">Hire</button>
+            </form>
+
+            <a href="@Url.Action("PlayerInfo", "Home", new { playerName = player.GamerTag })" class="info-btn" style="display:inline-block;">Info</a>
+
+            @if (isAdmin)
+            {
+                <div style="margin-top: 10px;">
+                    <a asp-controller="Players" asp-action="Edit" asp-route-id="@player.Id" class="btn btn-sm btn-info">Edit</a>
+                    <a asp-controller="Players" asp-action="Details" asp-route-id="@player.Id" class="btn btn-sm btn-secondary">Details</a>
+                    <a asp-controller="Players" asp-action="Delete" asp-route-id="@player.Id" class="btn btn-sm btn-danger">Delete</a>
+                </div>
+            }
+        </div>
+    }
+</div>

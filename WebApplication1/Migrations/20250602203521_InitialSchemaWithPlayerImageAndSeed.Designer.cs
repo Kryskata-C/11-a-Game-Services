@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250602194112_SeedInitialData")]
-    partial class SeedInitialData
+    [Migration("20250602203521_InitialSchemaWithPlayerImageAndSeed")]
+    partial class InitialSchemaWithPlayerImageAndSeed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -91,19 +91,35 @@ namespace WebApplication1.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "e2f80499-7b5c-4018-9543-cbdae02d06d6",
+                            Id = "ADMIN_USER_GUID",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "76277bb5-9716-43ff-ae5b-6f37ae81ba87",
+                            ConcurrencyStamp = "24a6bc3f-c97b-4eaf-b117-72bec3ee0908",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEMCPViSJ1SaKgBghtmVG547LQ+MwfamdbzhTx1CYtLliFmkOyFjcZATm7m65n7E+/g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEPq8iJrNz2D9JUTUUJaJTL01pyL7sHcryj/e8UQPSQ3PSf5THvSX/bafsNIRgfm/aA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "4feb5df3-07e6-42b4-89ca-6215e9fe8af5",
+                            SecurityStamp = "6ccff6fa-a62a-4eb0-821e-bf33f9d026e3",
                             TwoFactorEnabled = false,
                             UserName = "admin"
+                        },
+                        new
+                        {
+                            Id = "HERO_USER_GUID",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "8515d254-bd2c-431e-828b-36391bfd94f5",
+                            Email = "hero@example.com",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "HERO@EXAMPLE.COM",
+                            NormalizedUserName = "HERO",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOnwIl+B1C6cp1L+uN+hRVaM6yDTgv0sRSCEIMPzxIABik17HNv3bT6SPqzYJSoGdg==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "03874ea1-852e-4e78-a222-b2cf6544bd1f",
+                            TwoFactorEnabled = false,
+                            UserName = "hero"
                         });
                 });
 
@@ -136,7 +152,7 @@ namespace WebApplication1.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "730207cf-6cc7-460d-bdce-e70279fd9730",
+                            Id = "ADMIN_ROLE_GUID",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -231,8 +247,8 @@ namespace WebApplication1.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "e2f80499-7b5c-4018-9543-cbdae02d06d6",
-                            RoleId = "730207cf-6cc7-460d-bdce-e70279fd9730"
+                            UserId = "ADMIN_USER_GUID",
+                            RoleId = "ADMIN_ROLE_GUID"
                         });
                 });
 
@@ -284,6 +300,9 @@ namespace WebApplication1.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("LastLoginDate")
                         .HasColumnType("datetime2");
 
@@ -315,27 +334,27 @@ namespace WebApplication1.Migrations
                         new
                         {
                             Id = 1,
-                            ApplicationUserId = "e2f80499-7b5c-4018-9543-cbdae02d06d6",
+                            ApplicationUserId = "ADMIN_USER_GUID",
                             Description = "The admin's player profile",
                             Email = "admin@example.com",
                             ExperiencePoints = 10000L,
                             GamerTag = "AdminPlayer",
-                            LastLoginDate = new DateTime(2025, 6, 2, 19, 41, 12, 718, DateTimeKind.Utc).AddTicks(4273),
+                            LastLoginDate = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(844),
                             Level = 10,
-                            RegistrationDate = new DateTime(2025, 6, 2, 19, 41, 12, 718, DateTimeKind.Utc).AddTicks(4272),
+                            RegistrationDate = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(844),
                             TeamId = 1,
                             VirtualCurrencyBalance = 500.00m
                         },
                         new
                         {
                             Id = 2,
-                            ApplicationUserId = "9163444f-a784-43df-8224-7b4ba022d67c",
+                            ApplicationUserId = "HERO_USER_GUID",
                             Description = "A heroic player",
                             Email = "hero@example.com",
                             ExperiencePoints = 2500L,
                             GamerTag = "HeroPlayer",
                             Level = 5,
-                            RegistrationDate = new DateTime(2025, 6, 2, 19, 41, 12, 718, DateTimeKind.Utc).AddTicks(4278),
+                            RegistrationDate = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(850),
                             TeamId = 2,
                             VirtualCurrencyBalance = 100.00m
                         });
@@ -370,14 +389,14 @@ namespace WebApplication1.Migrations
                         new
                         {
                             Id = 1,
-                            DateCreated = new DateTime(2025, 6, 2, 19, 41, 12, 718, DateTimeKind.Utc).AddTicks(4254),
+                            DateCreated = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(823),
                             Description = "The first team",
                             Name = "Team Alpha"
                         },
                         new
                         {
                             Id = 2,
-                            DateCreated = new DateTime(2025, 6, 2, 19, 41, 12, 718, DateTimeKind.Utc).AddTicks(4256),
+                            DateCreated = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(825),
                             Description = "The second team",
                             Name = "Team Bravo"
                         });

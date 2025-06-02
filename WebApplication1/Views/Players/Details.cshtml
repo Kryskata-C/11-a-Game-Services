@@ -1,0 +1,75 @@
+﻿@model Player
+@{
+    ViewData["Title"] = "Player Details";
+}
+
+<h1>Details for @Model.GamerTag</h1>
+
+<div>
+    <h4>Player Information</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.GamerTag)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.GamerTag)
+        </dd>
+
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.PricePerHour)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.PricePerHour)
+        </dd>
+
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Rating)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Rating)
+        </dd>
+
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Reviews)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Reviews)
+        </dd>
+
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.ImageUrl)
+        </dt>
+        <dd class="col-sm-9">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="Image for @Model.GamerTag" style="max-width: 200px; max-height: 200px;" />
+            }
+            else
+            {
+                <span>No image available</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">
+            Team
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Team.Name) @* Assuming you want to display Team Name and Team is loaded *@
+        </dd>
+
+        @* Removed fields like Email, Level, ExperiencePoints, VirtualCurrencyBalance etc. *@
+    </dl>
+</div>
+<div class="mt-4">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a> |
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    @* Add your "Hire" button or logic here if this is for PlayerHire.cshtml *@
+</div>

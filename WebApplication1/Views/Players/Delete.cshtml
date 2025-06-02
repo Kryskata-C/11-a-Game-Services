@@ -1,0 +1,42 @@
+﻿@model Player
+@{
+    ViewData["Title"] = "Delete Player";
+}
+
+<h1>Delete Player</h1>
+
+<h3>Are you sure you want to delete "@Model.GamerTag"?</h3>
+<div>
+    <h4>Player Details</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.GamerTag)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.GamerTag)
+        </dd>
+
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+
+        <dt class="col-sm-3">
+            @Html.DisplayNameFor(model => model.PricePerHour)
+        </dt>
+        <dd class="col-sm-9">
+            @Html.DisplayFor(model => model.PricePerHour)
+        </dd>
+
+        @* Removed fields: Email, Level, ApplicationUser etc. *@
+    </dl>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </form>
+</div>
