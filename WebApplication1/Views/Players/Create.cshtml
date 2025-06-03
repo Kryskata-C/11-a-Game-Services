@@ -4,8 +4,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@* Your <style> block can remain as it was provided in the previous turn *@
 <style>
+    /* Your existing styles for Create.cshtml */
     .form-container {
         background-color: #1a1a1a;
         padding: 30px;
@@ -30,36 +30,37 @@
         animation: fadeInUp 0.5s ease-out forwards;
     }
 
-        .form-group:nth-child(1) {
+        .form-group:nth-child(1) { /* Validation Summary */
+            animation-delay: 0.05s;
+        }
+
+        .form-group:nth-child(2) { /* GamerTag */
             animation-delay: 0.1s;
         }
 
-        .form-group:nth-child(2) {
+        .form-group:nth-child(3) { /* Description */
             animation-delay: 0.15s;
         }
 
-        .form-group:nth-child(3) {
+        .form-group:nth-child(4) { /* PricePerHour */
             animation-delay: 0.2s;
         }
 
-        .form-group:nth-child(4) {
+        .form-group:nth-child(5) { /* Rating */
             animation-delay: 0.25s;
         }
 
-        .form-group:nth-child(5) {
+        /* Nth-child for ImageFile (was 7th, now 6th if Reviews is removed) */
+        .form-group:nth-child(6) {
             animation-delay: 0.3s;
         }
-
-        .form-group:nth-child(6) {
-            animation-delay: 0.35s; /* This would be for the string Reviews field */
-        }
-
+        /* Nth-child for Submit button (was 8th, now 7th) */
         .form-group:nth-child(7) {
-            animation-delay: 0.4s; /* This would be for ImageFile */
+            animation-delay: 0.35s;
         }
-
+        /* Nth-child for Back link (was 9th, now 8th) */
         .form-group:nth-child(8) {
-            animation-delay: 0.45s; /* Submit Button */
+            animation-delay: 0.4s;
         }
 
 
@@ -187,33 +188,16 @@
                     <span asp-validation-for="Rating" class="text-danger"></span>
                 </div>
 
-                @* This form group is for the 'string Reviews' property on PlayerCreateViewModel.
-                If you removed this property from PlayerCreateViewModel, delete this div.
-                If it's intended for general notes, ensure your controller handles it. *@
-                <div class="form-group">
-                    <label asp-for="Reviews" class="control-label"></label>
-                    <textarea asp-for="Reviews" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="Reviews" class="text-danger"></span>
-                </div>
+                @* === The old "Reviews" string field was here and has been removed === *@
+                @* === To add functionality for InitialReviews (List<ReviewSubViewModel>),
+                you would add HTML and JavaScript here to manage a list of review forms. === *@
+
 
                 <div class="form-group">
                     <label asp-for="ImageFile" class="control-label"></label>
                     <input asp-for="ImageFile" type="file" class="form-control" />
                     <span asp-validation-for="ImageFile" class="text-danger"></span>
                 </div>
-
-                @* REMOVE ANY FORM GROUPS FOR PlayerId, ReviewerName, CommentText, StarRating (for a review)
-                as they DO NOT BELONG to PlayerCreateViewModel.
-                The errors indicate you had fields for these properties here.
-                For example, if you had:
-                <div class="form-group">
-                <label asp-for="PlayerId" class="control-label"></label> ...
-                </div>
-                <div class="form-group">
-                <label asp-for="ReviewerName" class="control-label"></label> ...
-                </div>
-                You must delete those sections.
-                *@
 
                 <div class="form-group">
                     <input type="submit" value="Create Player" class="btn-submit-player" />
@@ -230,4 +214,5 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    @* Scripts for dynamically adding/removing review forms would go here *@
 }

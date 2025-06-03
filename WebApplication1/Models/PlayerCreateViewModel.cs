@@ -3,27 +3,30 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebApplication1.Models 
 {
+    public class ReviewSubViewModel
+    {
+        [Required(ErrorMessage = "Reviewer name is required.")]
+        [StringLength(100)]
+        public string ReviewerName { get; set; }
+
+        [Required(ErrorMessage = "A comment is required.")]
+        [StringLength(1000)]
+        public string CommentText { get; set; }
+
+        [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
+        public int StarRating { get; set; }
+    }
+
     public class PlayerCreateViewModel
     {
-        [Required(ErrorMessage = "GamerTag is required.")]
-        [StringLength(100)]
-        public string GamerTag { get; set; }
+        // ... other properties ...
+        public string GamerTag { get; set; } //
+        public string Description { get; set; } //
+        public decimal PricePerHour { get; set; } //
+        public double Rating { get; set; } //
+                                           // Remove: public string Reviews { get; set; }
+        public IFormFile ImageFile { get; set; } //
 
-        [StringLength(1000)]
-        public string Description { get; set; }
-
-        [Required(ErrorMessage = "Price per hour is required.")]
-        [DataType(DataType.Currency)]
-        [Range(0.01, 10000, ErrorMessage = "Price must be greater than 0.")] 
-        public decimal PricePerHour { get; set; }
-
-        [Required(ErrorMessage = "Rating is required.")]
-        [Range(0, 5, ErrorMessage = "Rating must be between 0 and 5.")]
-        public double Rating { get; set; }
-
-        public string Reviews { get; set; } 
-
-        [Display(Name = "Player Image")]
-        public IFormFile ImageFile { get; set; }
+        public List<ReviewSubViewModel> InitialReviews { get; set; } = new List<ReviewSubViewModel>();
     }
 }

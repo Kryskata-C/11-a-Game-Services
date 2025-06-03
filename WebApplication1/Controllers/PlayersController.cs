@@ -5,7 +5,6 @@ using System.Linq;                         // For OrderBy, Skip, Take
 using System.Threading.Tasks;
 using WebApplication1.Services;
 using WebApplication1.Models;
-using WebApplication1.Data; // Assuming ApplicationDbContext is here
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using System;                       // For Guid
@@ -87,23 +86,32 @@ public class PlayersController : Controller
                 }
             }
 
+            // In PlayersController Create POST action
             Player newPlayer = new Player
             {
                 GamerTag = viewModel.GamerTag,
                 Description = viewModel.Description,
                 PricePerHour = viewModel.PricePerHour,
                 Rating = viewModel.Rating,
-                // Removed: Reviews = viewModel.Reviews, 
-                // PlayerReviews collection will be initialized empty by Player constructor.
-                // If viewModel.Reviews string from the form is meant for a different field 
-                // on Player (e.g., Player.GeneralNotes), map it to that field.
-                // For now, assuming it's not directly mapped or Player.Reviews was the string field to be removed.
                 ImageUrl = uniqueFileName != null ? $"/images/players/{uniqueFileName}" : null
             };
 
-            // If viewModel.Reviews *was* intended to be a simple text field on Player, 
-            // ensure Player model has a string property (e.g., InitialReviewNote) and map to it:
-            // newPlayer.InitialReviewNote = viewModel.Reviews;
+            if (viewModel.InitialReviews != null)
+            {
+                foreach (var reviewVm in viewModel.InitialReviews)
+                {
+                    var review = new Review
+                    {
+                        ReviewerName = reviewVm.ReviewerName,
+                        CommentText = reviewVm.CommentText,
+                        StarRating = reviewVm.StarRating,
+                        ReviewDate = DateTime.UtcNow,
+                        // Player will be set by EF Core when newPlayer is saved due to relationship
+                    };
+                    newPlayer.PlayerReviews.Add(review);
+                }
+            }
+
 
 
             try

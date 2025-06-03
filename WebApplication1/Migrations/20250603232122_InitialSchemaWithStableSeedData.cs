@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class Kryskata : Migration
+    public partial class InitialSchemaWithStableSeedData : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -180,12 +180,11 @@ namespace WebApplication1.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GamerTag = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     PricePerHour = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Rating = table.Column<double>(type: "float", nullable: false),
-                    Reviews = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TeamId = table.Column<int>(type: "int", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ImageUrl = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
+                    TeamId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -197,38 +196,71 @@ namespace WebApplication1.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CommentText = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReviewDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReviewerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StarRating = table.Column<int>(type: "int", nullable: false),
+                    PlayerId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Players_PlayerId",
+                        column: x => x.PlayerId,
+                        principalTable: "Players",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "40c08448-1b69-4869-aab3-66a63ed8eb84", null, "Admin", "ADMIN" });
+                values: new object[] { "a1b2c3d4-e5f6-7777-8888-9999abcdefff", null, "Admin", "ADMIN" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "c288e079-5516-4142-90a6-4cf7f13e2ec5", 0, "eebe388b-a97f-4f44-a9b8-baa26c95a5bb", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEDIXRDGOfLO05NHN4hOECiTQh49aGGd4VUG15P82IKak25MiQDOidPoKNAMfZBHb4Q==", null, false, "a01fcec3-4fcd-41be-a1e0-bec10e15b8e1", false, "admin" });
+                values: new object[] { "f9e8d7c6-b5a4-3333-2222-1111fedcba98", 0, "ac2ff6df-c2ff-46e8-bcbe-9c50bc9b3884", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEPhCicgCo5N9sF4SByR3QzkLrKJMqzIx0RSw4xnhuvawUazv2tGU8LqXHmaJUy+G7A==", null, false, "ABCDEF01-2345-6789-ABCD-EF0123456789", false, "admin" });
 
             migrationBuilder.InsertData(
                 table: "Teams",
                 columns: new[] { "Id", "DateCreated", "Description", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2025, 6, 3, 20, 15, 14, 392, DateTimeKind.Utc).AddTicks(9848), "The first team", "Team Alpha" },
-                    { 2, new DateTime(2025, 6, 3, 20, 15, 14, 392, DateTimeKind.Utc).AddTicks(9849), "The second team", "Team Bravo" }
+                    { 1, new DateTime(2025, 6, 3, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3500), "The first team", "Team Alpha" },
+                    { 2, new DateTime(2025, 6, 3, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3502), "The second team", "Team Bravo" }
                 });
 
             migrationBuilder.InsertData(
                 table: "AspNetUserRoles",
                 columns: new[] { "RoleId", "UserId" },
-                values: new object[] { "40c08448-1b69-4869-aab3-66a63ed8eb84", "c288e079-5516-4142-90a6-4cf7f13e2ec5" });
+                values: new object[] { "a1b2c3d4-e5f6-7777-8888-9999abcdefff", "f9e8d7c6-b5a4-3333-2222-1111fedcba98" });
 
             migrationBuilder.InsertData(
                 table: "Players",
-                columns: new[] { "Id", "Description", "GamerTag", "ImageUrl", "PricePerHour", "Rating", "Reviews", "TeamId" },
+                columns: new[] { "Id", "Description", "GamerTag", "ImageUrl", "PricePerHour", "Rating", "TeamId" },
                 values: new object[,]
                 {
-                    { 1, "Top tier player with 5 years of competitive experience.", "ProGamerX", "https://example.com/images/progamerx.png", 50.00m, 4.7999999999999998, "Excellent communication and skill.", 1 },
-                    { 2, "Specializes in strategy and team coordination.", "StrategistSupreme", "https://example.com/images/strategistsupreme.png", 40.00m, 4.5, "Great tactical mind, helped our team immensely.", 2 },
-                    { 3, "Up and coming player, eager to learn and assist.", "NewTalent", "https://example.com/images/newtalent.png", 20.00m, 3.8999999999999999, "Good potential, friendly and responsive.", 1 }
+                    { 1, "Top tier player...", "ProGamerX", "https://example.com/images/progamerx.png", 50.00m, 4.7999999999999998, 1 },
+                    { 2, "Specializes in strategy...", "StrategistSupreme", "https://example.com/images/strategistsupreme.png", 40.00m, 4.5, 2 },
+                    { 3, "Up and coming player...", "NewTalent", "https://example.com/images/newtalent.png", 20.00m, 3.8999999999999999, 1 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Reviews",
+                columns: new[] { "Id", "CommentText", "PlayerId", "ReviewDate", "ReviewerName", "StarRating" },
+                values: new object[,]
+                {
+                    { 1, "Excellent communication and skill for ProGamerX!", 1, new DateTime(2025, 5, 29, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3625), "UserA", 5 },
+                    { 2, "Very professional (ProGamerX).", 1, new DateTime(2025, 6, 1, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3632), "UserB", 4 },
+                    { 3, "Great tactical mind (StrategistSupreme)!", 2, new DateTime(2025, 5, 31, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3634), "UserC", 5 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -280,6 +312,11 @@ namespace WebApplication1.Migrations
                 name: "IX_Players_TeamId",
                 table: "Players",
                 column: "TeamId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_PlayerId",
+                table: "Reviews",
+                column: "PlayerId");
         }
 
         /// <inheritdoc />
@@ -301,13 +338,16 @@ namespace WebApplication1.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Players");
+                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Players");
 
             migrationBuilder.DropTable(
                 name: "Teams");

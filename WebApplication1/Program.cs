@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection; // For CreateScope, GetRequiredS
 using Microsoft.Extensions.Logging; // For ILogger
 using System; // For TimeSpan, InvalidOperationException, Exception
 using System.Threading.Tasks; // For Task
-using WebApplication1.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
