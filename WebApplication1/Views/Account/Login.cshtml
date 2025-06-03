@@ -1,0 +1,47 @@
+﻿@model WebApplication1.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Log in";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Ensure this path is correct
+}
+
+<link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+<div class="login-container">
+    <h1 class="login-header">@ViewData["Title"]</h1>
+
+    <div asp-validation-summary="ModelOnly" class="text-danger login-error"></div> <form asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="login-form">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label asp-for="Username"></label>
+            <input asp-for="Username" class="form-control" /> <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" class="form-control" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <div class="checkbox">
+                <label asp-for="RememberMe">
+                    <input asp-for="RememberMe" />
+                    @Html.DisplayNameFor(m => m.RememberMe)
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="login-submit">Log In</button>
+    </form>
+
+    <div class="register-link mt-3">
+        <span>Don't have an account?</span>
+        <a asp-action="Register" asp-controller="Account" class="register-btn">Register</a>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

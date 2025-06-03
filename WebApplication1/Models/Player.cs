@@ -1,37 +1,40 @@
-﻿using System;
+﻿// File: WebApplication1/Models/Player.cs
+using System;
+using System.Collections.Generic; // Required for ICollection
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using WebApplication1.Models;
 public class Player
-{
-    public int Id { get; set; }
+    {
+        public int Id { get; set; }
 
-    [Required]
-    [StringLength(100)]
-    public string GamerTag { get; set; } // This can stay as the player's professional name/tag
+        [Required]
+        [StringLength(100)]
+        public string GamerTag { get; set; }
 
-    [StringLength(1000)] // Increased length for more detailed descriptions or multiple reviews
-    public string Description { get; set; } // General description of the player/service
+        [StringLength(1000)]
+        public string Description { get; set; }
 
-    public decimal PricePerHour { get; set; } // Cost to hire the player
+        public decimal PricePerHour { get; set; }
 
-    [Range(0, 5)] // Assuming a 0-5 star rating system
-    public double Rating { get; set; }
+        [Range(0, 5)]
+        public double Rating { get; set; }
 
-    public string Reviews { get; set; } // Could be a simple text field for reviews, or a JSON string, or link to a review system
+        // REMOVE the old string Reviews property:
+        // public string Reviews { get; set; } 
 
-    // Team association can remain if players for hire can be part of a team
-    public int? TeamId { get; set; }
-    [ForeignKey("TeamId")]
-    public virtual Team Team { get; set; }
-    public string ImageUrl { get; set; }
-    // Properties to remove:
-    // public string Email { get; set; } // Users have emails, not the player products
-    // public DateTime RegistrationDate { get; set; } // Not relevant for a product
-    // public DateTime? LastLoginDate { get; set; } // Not relevant for a product
-    // public int Level { get; set; } // This might be relevant depending on the game/service, but let's simplify for now
-    // public long ExperiencePoints { get; set; } // As above
-    // public decimal VirtualCurrencyBalance { get; set; } // Not relevant for a hireable product
-    // public string ApplicationUserId { get; set; } // CRITICAL: This is the main link to User that needs to be severed
-    // public virtual ApplicationUser ApplicationUser { get; set; } // Corresponding navigation property
+        // ADD this collection for structured reviews:
+        public virtual ICollection<Review> PlayerReviews { get; set; } // Changed name to avoid confusion
+
+        public int? TeamId { get; set; }
+        [ForeignKey("TeamId")]
+        public virtual Team Team { get; set; }
+
+        public string ImageUrl { get; set; }
+
+        public Player()
+        {
+            PlayerReviews = new HashSet<Review>(); // Initialize the collection
+        }
+    
 }

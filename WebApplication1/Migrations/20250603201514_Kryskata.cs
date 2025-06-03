@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialSchemaWithPlayerImageAndSeed : Migration
+    public partial class Kryskata : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -180,26 +180,16 @@ namespace WebApplication1.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GamerTag = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RegistrationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LastLoginDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Level = table.Column<int>(type: "int", nullable: false),
-                    ExperiencePoints = table.Column<long>(type: "bigint", nullable: false),
-                    VirtualCurrencyBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    TeamId = table.Column<int>(type: "int", nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    PricePerHour = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Rating = table.Column<double>(type: "float", nullable: false),
+                    Reviews = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TeamId = table.Column<int>(type: "int", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Players", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Players_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Players_Teams_TeamId",
                         column: x => x.TeamId,
@@ -210,38 +200,35 @@ namespace WebApplication1.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "ADMIN_ROLE_GUID", null, "Admin", "ADMIN" });
+                values: new object[] { "40c08448-1b69-4869-aab3-66a63ed8eb84", null, "Admin", "ADMIN" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[,]
-                {
-                    { "ADMIN_USER_GUID", 0, "24a6bc3f-c97b-4eaf-b117-72bec3ee0908", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEPq8iJrNz2D9JUTUUJaJTL01pyL7sHcryj/e8UQPSQ3PSf5THvSX/bafsNIRgfm/aA==", null, false, "6ccff6fa-a62a-4eb0-821e-bf33f9d026e3", false, "admin" },
-                    { "HERO_USER_GUID", 0, "8515d254-bd2c-431e-828b-36391bfd94f5", "hero@example.com", true, false, null, "HERO@EXAMPLE.COM", "HERO", "AQAAAAIAAYagAAAAEOnwIl+B1C6cp1L+uN+hRVaM6yDTgv0sRSCEIMPzxIABik17HNv3bT6SPqzYJSoGdg==", null, false, "03874ea1-852e-4e78-a222-b2cf6544bd1f", false, "hero" }
-                });
+                values: new object[] { "c288e079-5516-4142-90a6-4cf7f13e2ec5", 0, "eebe388b-a97f-4f44-a9b8-baa26c95a5bb", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEDIXRDGOfLO05NHN4hOECiTQh49aGGd4VUG15P82IKak25MiQDOidPoKNAMfZBHb4Q==", null, false, "a01fcec3-4fcd-41be-a1e0-bec10e15b8e1", false, "admin" });
 
             migrationBuilder.InsertData(
                 table: "Teams",
                 columns: new[] { "Id", "DateCreated", "Description", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(823), "The first team", "Team Alpha" },
-                    { 2, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(825), "The second team", "Team Bravo" }
+                    { 1, new DateTime(2025, 6, 3, 20, 15, 14, 392, DateTimeKind.Utc).AddTicks(9848), "The first team", "Team Alpha" },
+                    { 2, new DateTime(2025, 6, 3, 20, 15, 14, 392, DateTimeKind.Utc).AddTicks(9849), "The second team", "Team Bravo" }
                 });
 
             migrationBuilder.InsertData(
                 table: "AspNetUserRoles",
                 columns: new[] { "RoleId", "UserId" },
-                values: new object[] { "ADMIN_ROLE_GUID", "ADMIN_USER_GUID" });
+                values: new object[] { "40c08448-1b69-4869-aab3-66a63ed8eb84", "c288e079-5516-4142-90a6-4cf7f13e2ec5" });
 
             migrationBuilder.InsertData(
                 table: "Players",
-                columns: new[] { "Id", "ApplicationUserId", "Description", "Email", "ExperiencePoints", "GamerTag", "ImageUrl", "LastLoginDate", "Level", "RegistrationDate", "TeamId", "VirtualCurrencyBalance" },
+                columns: new[] { "Id", "Description", "GamerTag", "ImageUrl", "PricePerHour", "Rating", "Reviews", "TeamId" },
                 values: new object[,]
                 {
-                    { 1, "ADMIN_USER_GUID", "The admin's player profile", "admin@example.com", 10000L, "AdminPlayer", null, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(844), 10, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(844), 1, 500.00m },
-                    { 2, "HERO_USER_GUID", "A heroic player", "hero@example.com", 2500L, "HeroPlayer", null, null, 5, new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(850), 2, 100.00m }
+                    { 1, "Top tier player with 5 years of competitive experience.", "ProGamerX", "https://example.com/images/progamerx.png", 50.00m, 4.7999999999999998, "Excellent communication and skill.", 1 },
+                    { 2, "Specializes in strategy and team coordination.", "StrategistSupreme", "https://example.com/images/strategistsupreme.png", 40.00m, 4.5, "Great tactical mind, helped our team immensely.", 2 },
+                    { 3, "Up and coming player, eager to learn and assist.", "NewTalent", "https://example.com/images/newtalent.png", 20.00m, 3.8999999999999999, "Good potential, friendly and responsive.", 1 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -282,12 +269,6 @@ namespace WebApplication1.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Players_ApplicationUserId",
-                table: "Players",
-                column: "ApplicationUserId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Players_GamerTag",

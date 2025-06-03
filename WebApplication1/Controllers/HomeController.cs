@@ -1,5 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
@@ -7,10 +13,17 @@ namespace WebApplication1.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(
+            ILogger<HomeController> logger,
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager)
         {
             _logger = logger;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         public IActionResult Index()
@@ -37,66 +50,6 @@ namespace WebApplication1.Controllers
         {
             return View();
         }
-        [HttpGet] 
-        public IActionResult Login()
-        {
-            return View();
-        }
-        [HttpPost]
-        public IActionResult Login(string username, string password)
-        {
-            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users.txt");
-            HttpContext.Session.SetInt32("Funds", 100000); //For now until i make it dynamic with the user profile
-            if (!System.IO.File.Exists(filePath))
-            {
-                ViewBag.Message = "User storage not found.";
-                return View();
-            }
-
-            var lines = System.IO.File.ReadAllLines(filePath);
-
-            foreach (var line in lines)
-            {
-                var userMatch = System.Text.RegularExpressions.Regex.Match(
-                    line,
-                    @"user\s+""(.+?)""\s+\{\s+password:\s+""(.+?)"",\s+since:\s+""(.+?)"",\s+spent:\s+(\d+),\s+mosthired:\s+\[(.*?)\],\s+reviews:\s+\[(.*?)\]\s+\}"
-                );
-
-                if (userMatch.Success)
-                {
-                    var storedUsername = userMatch.Groups[1].Value;
-                    var storedPassword = userMatch.Groups[2].Value;
-
-                    // Make username check case-insensitive for login robustness
-                    if (storedUsername.Equals(username, StringComparison.OrdinalIgnoreCase) && storedPassword == password)
-                    {
-                        HttpContext.Session.SetString("Username", storedUsername); // Store the username from file (preserves casing)
-
-                        // Check if the logged-in user is admin (e.g., username is "admin")
-                        if (storedUsername.Equals("admin", StringComparison.OrdinalIgnoreCase))
-                        {
-                            HttpContext.Session.SetString("IsAdmin", "true");
-                        }
-                        else
-                        {
-                            // Ensure IsAdmin is not set or is removed for non-admin users
-                            HttpContext.Session.Remove("IsAdmin");
-                        }
-
-                        return RedirectToAction("Index");
-                    }
-                }
-            }
-
-            ViewBag.Message = "Invalid username or password.";
-            return View();
-        }
-
-        [HttpGet]
-        public IActionResult Register()
-        {
-            return View();
-        }
 
         public IActionResult Basket()
         {
@@ -105,24 +58,24 @@ namespace WebApplication1.Controllers
 
             var basket = string.IsNullOrEmpty(basketJson)
                 ? new Dictionary<string, int>()
-                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(basketJson);
+                : JsonSerializer.Deserialize<Dictionary<string, int>>(basketJson);
 
             var prices = string.IsNullOrEmpty(priceJson)
                 ? new Dictionary<string, int>()
-                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(priceJson);
+                : JsonSerializer.Deserialize<Dictionary<string, int>>(priceJson);
 
             ViewBag.PlayersPrices = prices;
 
             return View(basket);
         }
 
-
         [HttpPost]
         public IActionResult AddToBasket(string playerName, int price)
         {
             var basketJson = HttpContext.Session.GetString("Basket");
-            var basket = string.IsNullOrEmpty(basketJson) ? new Dictionary<string, int>()
-                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(basketJson);
+            var basket = string.IsNullOrEmpty(basketJson)
+                ? new Dictionary<string, int>()
+                : JsonSerializer.Deserialize<Dictionary<string, int>>(basketJson);
 
             if (basket.ContainsKey(playerName))
             {
@@ -132,105 +85,59 @@ namespace WebApplication1.Controllers
             {
                 basket[playerName] = 1;
             }
-            HttpContext.Session.SetString("Basket", System.Text.Json.JsonSerializer.Serialize(basket));
+            HttpContext.Session.SetString("Basket", JsonSerializer.Serialize(basket));
 
             var priceJson = HttpContext.Session.GetString("Prices");
             var priceDict = string.IsNullOrEmpty(priceJson)
                 ? new Dictionary<string, int>()
-                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(priceJson);
+                : JsonSerializer.Deserialize<Dictionary<string, int>>(priceJson);
 
             priceDict[playerName] = price;
-            HttpContext.Session.SetString("Prices", System.Text.Json.JsonSerializer.Serialize(priceDict));
+            HttpContext.Session.SetString("Prices", JsonSerializer.Serialize(priceDict));
 
             return RedirectToAction("Basket");
         }
 
-
-
-
-
-        [HttpPost]
-        public IActionResult Register(string username, string password)
+        public async Task<IActionResult> UserProfile()
         {
-            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users.txt");
-
-            if (!System.IO.File.Exists(filePath))
+            if (!_signInManager.IsSignedIn(User))
             {
-                System.IO.File.WriteAllText(filePath, "");
+                return RedirectToAction("Login", "Account");
             }
 
-            var lines = System.IO.File.ReadAllLines(filePath);
-
-            foreach (var line in lines)
+            var identityUser = await _userManager.GetUserAsync(User);
+            if (identityUser == null)
             {
-                if (line.Contains($"user \"{username}\""))
-                {
-                    ViewBag.Message = "Username already taken.";
-                    return View();
-                }
+                _logger.LogWarning($"Authenticated user '{User.Identity.Name}' not found in database. Logging out.");
+                await _signInManager.SignOutAsync();
+                HttpContext.Session.Clear();
+                return RedirectToAction("Login", "Account");
             }
 
-            string entry = $"user \"{username}\" {{ password: \"{password}\", since: \"{DateTime.Now:yyyy-MM-dd}\", spent: 0, mosthired: [], reviews: [] }}\n";
-            System.IO.File.AppendAllText(filePath, entry);
-
-            HttpContext.Session.SetString("Username", username);
-            return RedirectToAction("Index");
-        }
-
-       
-
-        public new IActionResult User()
-        {
-            var username = HttpContext.Session.GetString("Username");
-            if (string.IsNullOrEmpty(username))
+            var model = new UserProfileViewModel
             {
-                return RedirectToAction("Login");
-            }
+                Username = identityUser.UserName,
+                UserSince = DateTime.UtcNow,
+                TotalSpent = 0,
+                MostHiredPlayers = new List<string>(),
+                Reviews = new List<Review>()
+            };
 
-            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users.txt");
-            if (!System.IO.File.Exists(filePath)) return RedirectToAction("Login");
-
-            var lines = System.IO.File.ReadAllLines(filePath);
-            foreach (var line in lines)
-            {
-                if (line.Contains($"user \"{username}\""))
-                {
-                    var userMatch = System.Text.RegularExpressions.Regex.Match(
-                         line,
-                         @"user\s+""(.+?)""\s+\{\s+password:\s+""(.+?)"",\s+since:\s+""(.+?)"",\s+spent:\s+(\d+),\s+mosthired:\s+\[(.*?)\],\s+reviews:\s+\[(.*?)\]\s+\}"
-                    );
-
-
-                    if (userMatch.Success)
-                    {
-                        var model = new UserProfileViewModel
-                        {
-                            Username = userMatch.Groups[1].Value,
-                            UserSince = DateTime.TryParse(userMatch.Groups[3].Value, out var date) ? date : DateTime.Now,
-                            TotalSpent = int.Parse(userMatch.Groups[4].Value),
-                            MostHiredPlayers = userMatch.Groups[5].Value.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToList(),
-                            Reviews = new List<Review>()
-                        };
-                        return View(model);
-                    }
-                }
-            }
-
-            return RedirectToAction("Login");
+            return View("User", model);
         }
 
         public IActionResult PlayerInfo(string playerName)
         {
             var reviewsDictionary = new Dictionary<string, List<Review>>
-    {
-        { "Atanas (Cenkata)", new List<Review> { new Review { ReviewerName = "Ivan", Comment = "Insanely good!", StarRating = 5 } } },
-        { "Boris (shefa na relefa)", new List<Review> { new Review { ReviewerName = "Mira", Comment = "Very strategic.", StarRating = 4 } } },
-        { "Aryaan (Ary)", new List<Review> { new Review { ReviewerName = "Toni", Comment = "Awesome trick shots.", StarRating = 5 } } },
-        { "Nikolay (гоuemия)", new List<Review> { new Review { ReviewerName = "Alex", Comment = "Very tactical player.", StarRating = 5 } } },
-        { "Maxi (Dragon)", new List<Review> { new Review { ReviewerName = "Maria", Comment = "Catches you off guard.", StarRating = 4 } } },
-        { "Vaseto (....)", new List<Review> { new Review { ReviewerName = "Stoyan", Comment = "Great support!", StarRating = 4 } } },
-        { "Christian (kryskata)", new List<Review> { new Review { ReviewerName = "Niki", Comment = "New but skilled.", StarRating = 3 } } },
-    };
+            {
+                { "Atanas (Cenkata)", new List<Review> { new Review { ReviewerName = "Ivan", Comment = "Insanely good!", StarRating = 5 } } },
+                { "Boris (shefa na relefa)", new List<Review> { new Review { ReviewerName = "Mira", Comment = "Very strategic.", StarRating = 4 } } },
+                { "Aryaan (Ary)", new List<Review> { new Review { ReviewerName = "Toni", Comment = "Awesome trick shots.", StarRating = 5 } } },
+                { "Nikolay (гоuemия)", new List<Review> { new Review { ReviewerName = "Alex", Comment = "Very tactical player.", StarRating = 5 } } },
+                { "Maxi (Dragon)", new List<Review> { new Review { ReviewerName = "Maria", Comment = "Catches you off guard.", StarRating = 4 } } },
+                { "Vaseto (....)", new List<Review> { new Review { ReviewerName = "Stoyan", Comment = "Great support!", StarRating = 4 } } },
+                { "Christian (kryskata)", new List<Review> { new Review { ReviewerName = "Niki", Comment = "New but skilled.", StarRating = 3 } } },
+            };
 
             var model = new PlayerDetailViewModel();
 
@@ -240,65 +147,56 @@ namespace WebApplication1.Controllers
                     model.PlayerName = playerName;
                     model.BigImageUrl = "/Nasko_Big.jpeg";
                     model.Description = "An elite Brawl Stars player with anger issues.";
-                    model.Reviews = reviewsDictionary[playerName];
+                    model.Reviews = reviewsDictionary.ContainsKey(playerName) ? reviewsDictionary[playerName] : new List<Review>();
                     break;
-
                 case "Boris (shefa na relefa)":
                     model.PlayerName = playerName;
                     model.BigImageUrl = "/Bobi_Big.jpeg";
                     model.Description = "A strategic Brawl Stars player on whom you can rely to save your game.";
-                    model.Reviews = reviewsDictionary[playerName];
+                    model.Reviews = reviewsDictionary.ContainsKey(playerName) ? reviewsDictionary[playerName] : new List<Review>();
                     break;
-
                 case "Aryaan (Ary)":
                     model.PlayerName = playerName;
                     model.BigImageUrl = "/Ary_Big.jpeg";
                     model.Description = "Renowned for precise aim and amazing trick-shots.";
-                    model.Reviews = reviewsDictionary[playerName];
+                    model.Reviews = reviewsDictionary.ContainsKey(playerName) ? reviewsDictionary[playerName] : new List<Review>();
                     break;
-
                 case "Nikolay (гоuemия)":
                     model.PlayerName = playerName;
                     model.BigImageUrl = "/images/nikolay-large.png";
                     model.Description = "Dominates high-level matches with his tactical brilliance...";
-                    model.Reviews = reviewsDictionary[playerName];
+                    model.Reviews = reviewsDictionary.ContainsKey(playerName) ? reviewsDictionary[playerName] : new List<Review>();
                     break;
-
                 case "Maxi (Dragon)":
                     model.PlayerName = playerName;
                     model.BigImageUrl = "/images/maxi-large.png";
                     model.Description = "Loves to surprise opponents with sneaky ambushes...";
-                    model.Reviews = reviewsDictionary[playerName];
+                    model.Reviews = reviewsDictionary.ContainsKey(playerName) ? reviewsDictionary[playerName] : new List<Review>();
                     break;
-
                 case "Vaseto (....)":
                     model.PlayerName = playerName;
                     model.BigImageUrl = "/images/vaseto-large.png";
                     model.Description = "Specializes in support roles, ensuring team victories...";
-                    model.Reviews = reviewsDictionary[playerName];
+                    model.Reviews = reviewsDictionary.ContainsKey(playerName) ? reviewsDictionary[playerName] : new List<Review>();
                     break;
-
                 case "Christian (kryskata)":
                     model.PlayerName = playerName;
                     model.BigImageUrl = "/images/christian-large.png";
                     model.Description = "New to the pro scene but improving rapidly...";
-                    model.Reviews = reviewsDictionary[playerName];
+                    model.Reviews = reviewsDictionary.ContainsKey(playerName) ? reviewsDictionary[playerName] : new List<Review>();
                     break;
-
                 default:
                     model.PlayerName = "Unknown Player";
                     model.BigImageUrl = "/images/unknown.png";
                     model.Description = "No information found.";
                     model.Reviews = new List<Review>
-            {
-                new Review { ReviewerName = "System", Comment = "No reviews available.", StarRating = 0 }
-            };
+                    {
+                        new Review { ReviewerName = "System", Comment = "No reviews available.", StarRating = 0 }
+                    };
                     break;
             }
-
             return View(model);
         }
-
     }
 
     public class PlayerDetailViewModel

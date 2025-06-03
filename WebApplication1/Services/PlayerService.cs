@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 // using WebApplication1.Models; // If Player is in Models namespace
 // Ensure your Player model is accessible, e.g. via a using directive if it's in a different namespace.
-
+using WebApplication1.Data;
 namespace WebApplication1.Services
 {
     public class PlayerService : IPlayerService

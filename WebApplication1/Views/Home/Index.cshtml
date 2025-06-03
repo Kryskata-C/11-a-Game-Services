@@ -1,84 +1,328 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Welcome to 11-A Gaming Services";
 }
 
-<style>
- heroTextGlow {
-    0%, 100% { text-shadow: 0 0 10px #00ff91, 0 0 20px #00ff91, 0 0 30px #00ff91; }
-    50% { text-shadow: 0 0 20px #00ff91, 0 0 30px #00ff91, 0 0 40px #00ff91; }
+@section Styles {
+    <style>
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('/images/hero-background.jpg'); /* Ensure this image exists or change path */
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+            padding: 7rem 1.5rem; /* Increased padding */
+            text-align: center;
+            border-radius: 0; /* Full width bleed */
+            margin: -2rem -15px 0 -15px; /* To counter container padding if Index is wrapped in one, and reduce top margin from body */
+            opacity: 0;
+            transform: translateY(20px);
+            animation: heroFadeInUp 0.8s ease-out forwards;
+            animation-delay: 0.2s; /* Delay slightly after page load */
+        }
+
+        @@keyframes heroFadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-section h1 {
+            font-size: 3.5rem; /* Larger */
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+        }
+
+        .hero-section .lead { /* Using .lead for better Bootstrap integration */
+            font-size: 1.35rem; /* Larger */
+            margin-bottom: 2.5rem;
+            max-width: 750px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-section .btn {
+            padding: 0.8rem 2rem; /* Larger buttons */
+            font-size: 1.1rem;
+            margin: 0.5rem;
+            animation: buttonPopIn 0.5s ease-out backwards;
+        }
+
+        .hero-section .btn-primary {
+            animation-delay: 0.8s;
+        }
+
+        .hero-section .btn-secondary {
+            animation-delay: 0.9s;
+        }
+
+        @@keyframes buttonPopIn {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            70% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+
+        .section-title {
+            text-align: center;
+            margin-top: 4rem; /* Increased spacing */
+            margin-bottom: 3rem;
+            font-size: 2.5rem; /* Larger */
+            color: var(--primary-color);
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+            .section-title.animated { /* Class to trigger animation when in view via JS */
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+
+        .feature-card-wrapper { /* For staggered animation */
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .feature-card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px; /* More rounded */
+            padding: 2.5rem; /* More padding */
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+            .feature-card:hover {
+                transform: translateY(-10px); /* More pronounced hover */
+                box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+            }
+
+        .feature-icon {
+            font-size: 3.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            line-height: 1; /* Ensure icon aligns well */
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+        }
+
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.75rem; /* Larger */
+            color: #fff;
+        }
+
+        .feature-card p {
+            font-size: 1rem;
+            flex-grow: 1; /* Allows button to be at bottom */
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card .btn {
+            margin-top: auto; /* Pushes button to bottom */
+        }
+
+
+        .why-us-section img {
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+        }
+
+            .why-us-section img:hover {
+                transform: scale(1.03);
+            }
+
+        .why-us-section h4 {
+            color: var(--primary-color);
+            margin-top: 0; /* For cases where img is not present or on smaller screens */
+        }
+
+        .why-us-section p {
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .news-item, .testimonial-item { /* Simplified, you can expand */
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--primary-color); /* Accent border */
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: box-shadow 0.3s ease;
+        }
+
+            .news-item:hover, .testimonial-item:hover {
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+
+            .news-item h4, .testimonial-item h4 {
+                color: var(--primary-color);
+                margin-top: 0;
+            }
+
+        /* Player Card specific for homepage */
+        .player-showcase-card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .player-showcase-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            }
+
+            .player-showcase-card img {
+                width: 120px; /* Larger image */
+                height: 120px;
+                object-fit: cover;
+                border: 3px solid var(--primary-color); /* Accent border */
+            }
+
+            .player-showcase-card h5 {
+                margin-top: 1rem;
+                margin-bottom: 0.25rem;
+                color: #fff;
+            }
+
+            .player-showcase-card .btn-sm {
+                padding: 0.4rem 0.8rem; /* Slightly larger sm button */
+            }
+    </style>
 }
 
- subtleFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-3">Dominate Your Game</h1>
+        <p class="lead">Connect with elite players and professional teams. Elevate your skills, conquer leaderboards, and experience gaming like never before with 11-A Gaming Services.</p>
+        <p>
+            <a asp-controller="Players" asp-action="PlayerHire" class="btn btn-primary btn-lg">Find Top Players</a>
+            <a asp-controller="Home" asp-action="TeamHire" class="btn btn-secondary btn-lg">Discover Pro Teams</a>
+        </p>
+    </div>
+</div>
 
- fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+<div class="container mt-5">
+    <section id="services" class="animated-section" style="animation-delay: 0.3s;">
+        <h2 class="section-title">Our Premier Services</h2>
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4 feature-card-wrapper" style="animation-delay: 0.5s;">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Elite Player Hiring</h3>
+                    <p>Access a roster of vetted, high-skill players ready to join your squad or provide expert coaching. Filter by game, role, and rating.</p>
+                    <a asp-controller="Players" asp-action="PlayerHire" class="btn btn-primary">Browse Players</a>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4 feature-card-wrapper" style="animation-delay: 0.7s;">
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Professional Teams</h3>
+                    <p>Assemble or hire full teams renowned for their synergy, strategy, and consistent performance in competitive environments.</p>
+                    <a asp-controller="Home" asp-action="TeamHire" class="btn btn-primary">Explore Teams</a>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4 feature-card-wrapper" style="animation-delay: 0.9s;">
+                <div class="feature-card">
+                    <div class="feature-icon">💡</div>
+                    <h3>Personalized Coaching</h3>
+                    <p>Learn from the best. Our experienced coaches offer tailored sessions to refine your mechanics, game sense, and strategy.</p>
+                    <a asp-controller="Home" asp-action="AboutDeveloper" class="btn btn-primary">Get Coached</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-.home-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 60px 20px;
-    min-height: 70vh;
-    border-radius: 15px;
-    margin-top: 30px;
-    background: rgba(0, 0, 0, 0.6);
-    box-shadow: inset 0 0 50px rgba(0, 255, 128, 0.2), 0 0 20px rgba(0, 255, 128, 0.3);
-    animation: fadeIn 1.5s ease-out;
-}
+    <hr class="my-5" style="border-color: var(--border-color);">
 
-.home-container .display-4 {
-    font-size: 4em;
-    color: #00ff91;
-    margin-bottom: 20px;
-    animation: heroTextGlow 2.5s infinite, fadeIn 2s ease-out;
-    font-weight: bold;
-}
+    <section id="why-us" class="animated-section why-us-section" style="animation-delay: 0.6s;">
+        <h2 class="section-title">Why 11-A Gaming?</h2>
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <img src="~/images/gaming-setup.jpg" alt="Professional Gaming Setup" class="img-fluid rounded shadow-lg">
+                @* Suggested image: A cool gaming setup or a team celebrating. Replace ~/images/gaming-setup.jpg *@
+            </div>
+            <div class="col-lg-6">
+                <h4>Top-Tier Talent Pool</h4>
+                <p>We connect you with verified, highly skilled players and established teams across numerous popular titles. Quality is our guarantee.</p>
+                <h4>Secure & Reliable Platform</h4>
+                <p>Enjoy peace of mind with our secure transaction system and dedicated support. Your gaming experience is our priority.</p>
+                <h4>Community Focused</h4>
+                <p>Join a thriving community of passionate gamers. Share experiences, find teammates, and grow together.</p>
+                <a asp-controller="Account" asp-action="Register" class="btn btn-outline-light mt-3">Join Our Community</a>
+            </div>
+        </div>
+    </section>
 
-.home-container p {
-    font-size: 1.5em;
-    color: #d0ffd6;
-    max-width: 700px;
-    margin-bottom: 30px;
-    line-height: 1.6;
-    animation: fadeIn 2.5s ease-out;
-}
+    <hr class="my-5" style="border-color: var(--border-color);">
 
-.cta-btn {
-    padding: 15px 35px;
-    font-size: 1.3em;
-    color: #000;
-    background: linear-gradient(45deg, #00ff91, #00ffaa);
-    border: none;
-    border-radius: 50px;
-    text-decoration: none;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 5px 20px rgba(0, 255, 144, 0.5);
-    animation: subtleFloat 3s infinite, fadeIn 3s ease-out;
-}
+    <section id="featured-players" class="animated-section" style="animation-delay: 0.9s;">
+        <h2 class="section-title">Meet Some of Our Stars</h2>
+        <div class="row">
+            @* Placeholder for featured players. In a real app, this would be dynamic. *@
+            <div class="col-lg-3 col-md-6 mb-4 feature-card-wrapper" style="animation-delay: 1.1s;">
+                <div class="player-showcase-card">
+                    <img src="~/images/player1.jpg" alt="Player Ace" class="img-fluid rounded-circle mb-3">
+                    <h5>Player Ace</h5>
+                    <p class="text-muted-color small">Brawlhalla Legend</p>
+                    <a href="#" class="btn btn-sm btn-primary">View Profile</a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4 feature-card-wrapper" style="animation-delay: 1.3s;">
+                <div class="player-showcase-card">
+                    <img src="~/images/player2.jpg" alt="Gamer Queen" class="img-fluid rounded-circle mb-3">
+                    <h5>Gamer Queen</h5>
+                    <p class="text-muted-color small">Strategy Mastermind</p>
+                    <a href="#" class="btn btn-sm btn-primary">View Profile</a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4 feature-card-wrapper" style="animation-delay: 1.5s;">
+                <div class="player-showcase-card">
+                    <img src="~/images/player3.jpg" alt="Prodigy X" class="img-fluid rounded-circle mb-3">
+                    <h5>Prodigy X</h5>
+                    <p class="text-muted-color small"> fiatal tehetség</p>
+                    <a href="#" class="btn btn-sm btn-primary">View Profile</a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4 feature-card-wrapper" style="animation-delay: 1.7s;">
+                <div class="player-showcase-card">
+                    <img src="~/images/player4.jpg" alt="The Veteran" class="img-fluid rounded-circle mb-3">
+                    <h5>The Veteran</h5>
+                    <p class="text-muted-color small">Years of Experience</p>
+                    <a href="#" class="btn btn-sm btn-primary">View Profile</a>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a asp-controller="Players" asp-action="PlayerHire" class="btn btn-lg btn-outline-light">Browse All Talents</a>
+        </div>
+    </section>
 
-.cta-btn:hover {
-    transform: scale(1.1) translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 255, 144, 0.8);
-}
-</style>
-
-
-<div class="home-container">
-    <h1 class="display-4">
-        11-A Gaming
-    </h1>
-    <p>
-        Welcome to 11-A Gaming, where you can buy professional gamers as teammates
-        to climb the ranks faster in your favorite online games.
-    </p>
-    <a class="cta-btn" asp-controller="Players" asp-action="PlayerHire">
-        Hire a Player
-    </a>
 </div>

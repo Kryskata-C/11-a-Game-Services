@@ -1,7 +1,6 @@
 ﻿@model Player
 @{
     ViewData["Title"] = "Edit Player";
-    // bool isAdmin = ViewBag.IsAdmin ?? false; // Uncomment if your view/layout uses ViewBag.IsAdmin
 }
 
 <h1>Edit Player</h1>
@@ -38,11 +37,14 @@
                 <span asp-validation-for="Rating" class="text-danger"></span>
             </div>
 
+            @* This entire section for 'Reviews' should be removed if Player.Reviews is now ICollection<Review>
+            and not a simple string you intend to edit here.
             <div class="form-group mb-3">
-                <label asp-for="Reviews" class="control-label"></label>
-                <textarea asp-for="Reviews" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Reviews" class="text-danger"></span>
+            <label asp-for="Reviews" class="control-label"></label>
+            <textarea asp-for="Reviews" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Reviews" class="text-danger"></span>
             </div>
+            *@
 
             <div class="form-group mb-3">
                 <label asp-for="ImageUrl" class="control-label"></label>
@@ -52,26 +54,15 @@
 
             <div class="form-group mb-3">
                 <label asp-for="TeamId" class="control-label">Team</label>
-                @* To make this a dropdown list:
-                1. In PlayersController.cs, in the Edit GET action (the one that takes "int? id"),
-                you need to fetch your list of teams and pass it to the view via ViewBag.
-                Example (add this before "return View(player);"):
-                ViewBag.TeamId = new SelectList(_context.Teams.OrderBy(t => t.Name), "Id", "Name", player.TeamId);
-                (This assumes you have access to your DbContext as "_context" in the controller.
-                If not, inject ApplicationDbContext into your PlayersController constructor.)
-
-                2. Then, change the <input> below to <select>:
                 <select asp-for="TeamId" class="form-control" asp-items="ViewBag.TeamId">
-                <option value="">-- No Team --</option>
+                    <option value="">-- No Team --</option>
                 </select>
-                *@
-                <input asp-for="TeamId" type="number" class="form-control" />
                 <span asp-validation-for="TeamId" class="text-danger"></span>
             </div>
 
             <div class="form-group mt-4">
                 <input type="submit" value="Save Changes" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                <a asp-action="PlayerHire" asp-controller="Players" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>

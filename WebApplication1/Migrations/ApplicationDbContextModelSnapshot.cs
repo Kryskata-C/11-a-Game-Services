@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
+using WebApplication1.Data;
 #nullable disable
 
 namespace WebApplication1.Migrations
@@ -88,17 +88,17 @@ namespace WebApplication1.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "6f5f488d-6e4f-4a82-87ac-57056ad69dd5",
+                            Id = "c288e079-5516-4142-90a6-4cf7f13e2ec5",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "354b610a-ffee-488f-af76-bf97dabc9281",
+                            ConcurrencyStamp = "eebe388b-a97f-4f44-a9b8-baa26c95a5bb",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHpciOIyuetlGMr4xj5fmf1DEwfphkTBf7W3Fuwrg6/YGtKZ+J85Bsu2tlZrUrkZdQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDIXRDGOfLO05NHN4hOECiTQh49aGGd4VUG15P82IKak25MiQDOidPoKNAMfZBHb4Q==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "f2c77f4d-1bdf-4feb-b07d-49141adcee45",
+                            SecurityStamp = "a01fcec3-4fcd-41be-a1e0-bec10e15b8e1",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -133,7 +133,7 @@ namespace WebApplication1.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "84272d0d-9612-4ec0-9f25-332e001b8d47",
+                            Id = "40c08448-1b69-4869-aab3-66a63ed8eb84",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -228,8 +228,8 @@ namespace WebApplication1.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "6f5f488d-6e4f-4a82-87ac-57056ad69dd5",
-                            RoleId = "84272d0d-9612-4ec0-9f25-332e001b8d47"
+                            UserId = "c288e079-5516-4142-90a6-4cf7f13e2ec5",
+                            RoleId = "40c08448-1b69-4869-aab3-66a63ed8eb84"
                         });
                 });
 
@@ -361,14 +361,14 @@ namespace WebApplication1.Migrations
                         new
                         {
                             Id = 1,
-                            DateCreated = new DateTime(2025, 6, 2, 21, 18, 21, 125, DateTimeKind.Utc).AddTicks(3007),
+                            DateCreated = new DateTime(2025, 6, 3, 20, 15, 14, 392, DateTimeKind.Utc).AddTicks(9848),
                             Description = "The first team",
                             Name = "Team Alpha"
                         },
                         new
                         {
                             Id = 2,
-                            DateCreated = new DateTime(2025, 6, 2, 21, 18, 21, 125, DateTimeKind.Utc).AddTicks(3008),
+                            DateCreated = new DateTime(2025, 6, 3, 20, 15, 14, 392, DateTimeKind.Utc).AddTicks(9849),
                             Description = "The second team",
                             Name = "Team Bravo"
                         });

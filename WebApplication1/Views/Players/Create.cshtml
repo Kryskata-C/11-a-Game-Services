@@ -1,9 +1,10 @@
 ﻿@model WebApplication1.Models.PlayerCreateViewModel
 @{
     ViewData["Title"] = "Add New Player";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Ensure this path is correct
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@* Your <style> block can remain as it was provided in the previous turn *@
 <style>
     .form-container {
         background-color: #1a1a1a;
@@ -18,53 +19,51 @@
         .form-container h1 {
             color: #00ff91;
             text-align: center;
-            margin-bottom: 25px; /* Adjusted */
+            margin-bottom: 25px;
             font-weight: bold;
         }
 
     .form-group {
-        margin-bottom: 20px; /* Adjusted */
+        margin-bottom: 20px;
         opacity: 0;
         transform: translateY(20px);
         animation: fadeInUp 0.5s ease-out forwards;
     }
 
-        /* Animation delays (adjust as needed based on number of fields) */
         .form-group:nth-child(1) {
             animation-delay: 0.1s;
         }
-        /* Validation Summary */
+
         .form-group:nth-child(2) {
             animation-delay: 0.15s;
         }
-        /* GamerTag */
+
         .form-group:nth-child(3) {
             animation-delay: 0.2s;
         }
-        /* Description */
+
         .form-group:nth-child(4) {
             animation-delay: 0.25s;
         }
-        /* PricePerHour */
+
         .form-group:nth-child(5) {
             animation-delay: 0.3s;
         }
-        /* Rating */
+
         .form-group:nth-child(6) {
-            animation-delay: 0.35s;
+            animation-delay: 0.35s; /* This would be for the string Reviews field */
         }
-        /* Reviews */
+
         .form-group:nth-child(7) {
-            animation-delay: 0.4s;
+            animation-delay: 0.4s; /* This would be for ImageFile */
         }
-        /* ImageFile */
+
         .form-group:nth-child(8) {
-            animation-delay: 0.45s;
+            animation-delay: 0.45s; /* Submit Button */
         }
-    /* Submit Button */
 
 
-    .form-control, .form-select { /* .form-select might not be used here anymore */
+    .form-control, .form-select {
         background-color: #2b2b2b;
         border: 1px solid #00ff91;
         color: #e0e0e0;
@@ -73,8 +72,8 @@
         transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-        .form-control[type="file"] { /* Specific styling for file input if needed */
-            padding: 7px; /* Adjust padding for file input */
+        .form-control[type="file"] {
+            padding: 7px;
         }
 
         .form-control:focus, .form-select:focus {
@@ -103,7 +102,7 @@
         display: block;
         width: 100%;
         font-size: 1.1em;
-        margin-top: 10px; /* Added margin */
+        margin-top: 10px;
     }
 
         .btn-submit-player:hover {
@@ -112,10 +111,10 @@
         }
 
     .text-danger {
-        color: #ff4d4d !important; /* Ensure visibility */
+        color: #ff4d4d !important;
         font-size: 0.9em;
         margin-top: 5px;
-        display: block; /* Ensure it takes space */
+        display: block;
     }
 
     .back-link {
@@ -188,6 +187,9 @@
                     <span asp-validation-for="Rating" class="text-danger"></span>
                 </div>
 
+                @* This form group is for the 'string Reviews' property on PlayerCreateViewModel.
+                If you removed this property from PlayerCreateViewModel, delete this div.
+                If it's intended for general notes, ensure your controller handles it. *@
                 <div class="form-group">
                     <label asp-for="Reviews" class="control-label"></label>
                     <textarea asp-for="Reviews" class="form-control" rows="3"></textarea>
@@ -199,6 +201,19 @@
                     <input asp-for="ImageFile" type="file" class="form-control" />
                     <span asp-validation-for="ImageFile" class="text-danger"></span>
                 </div>
+
+                @* REMOVE ANY FORM GROUPS FOR PlayerId, ReviewerName, CommentText, StarRating (for a review)
+                as they DO NOT BELONG to PlayerCreateViewModel.
+                The errors indicate you had fields for these properties here.
+                For example, if you had:
+                <div class="form-group">
+                <label asp-for="PlayerId" class="control-label"></label> ...
+                </div>
+                <div class="form-group">
+                <label asp-for="ReviewerName" class="control-label"></label> ...
+                </div>
+                You must delete those sections.
+                *@
 
                 <div class="form-group">
                     <input type="submit" value="Create Player" class="btn-submit-player" />

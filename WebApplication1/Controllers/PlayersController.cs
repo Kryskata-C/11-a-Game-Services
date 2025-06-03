@@ -1,20 +1,20 @@
-﻿// File: WebApplication1/Controllers/PlayersController.cs
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering; // Still needed for Edit action (TeamId)
+using Microsoft.EntityFrameworkCore;       // For Include, FirstOrDefaultAsync
+using System.Linq;                         // For OrderBy, Skip, Take
 using System.Threading.Tasks;
-using WebApplication1.Services;     // Your service namespace
-using WebApplication1.Models;     // Your models namespace (for Player, PlayerCreateViewModel)
-using Microsoft.AspNetCore.Hosting; // For IWebHostEnvironment
-using System.IO;                    // For Path, FileStream, Directory
-using Microsoft.AspNetCore.Http;    // For IFormFile (though usually referenced via model)
+using WebApplication1.Services;
+using WebApplication1.Models;
+using WebApplication1.Data; // Assuming ApplicationDbContext is here
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 using System;                       // For Guid
+using System.Collections.Generic;   // For List
 
 public class PlayersController : Controller
 {
     private readonly IPlayerService _playerService;
-    private readonly ApplicationDbContext _context; // For Edit actions if they still use Team
+    private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     public PlayersController(IPlayerService playerService, ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
@@ -26,7 +26,7 @@ public class PlayersController : Controller
 
     private bool IsAdminUser()
     {
-        return HttpContext.Session.GetString("IsAdmin") == "true";
+        return User.IsInRole("Admin");
     }
 
     public async Task<IActionResult> PlayerHire()
@@ -45,26 +45,11 @@ public class PlayersController : Controller
         return RedirectToAction(nameof(PlayerHire));
     }
 
-    public async Task<IActionResult> Details(int? id)
-    {
-        ViewBag.IsAdmin = IsAdminUser();
-        if (id == null)
-        {
-            return NotFound();
-        }
-        var player = await _playerService.GetPlayerByIdAsync(id.Value);
-        if (player == null)
-        {
-            return NotFound();
-        }
-        return View(player);
-    }
-
     // GET: Players/Create
     public IActionResult Create()
     {
         ViewBag.IsAdmin = IsAdminUser();
-        return View(new PlayerCreateViewModel()); // Use the ViewModel
+        return View(new PlayerCreateViewModel());
     }
 
     // POST: Players/Create
@@ -97,9 +82,8 @@ public class PlayersController : Controller
                 }
                 catch (Exception ex)
                 {
-                    // Log the error (using a proper logging framework is recommended)
                     ModelState.AddModelError(string.Empty, $"Error uploading image: {ex.Message}");
-                    return View(viewModel); // Return to view with error
+                    return View(viewModel);
                 }
             }
 
@@ -109,10 +93,18 @@ public class PlayersController : Controller
                 Description = viewModel.Description,
                 PricePerHour = viewModel.PricePerHour,
                 Rating = viewModel.Rating,
-                Reviews = viewModel.Reviews,
+                // Removed: Reviews = viewModel.Reviews, 
+                // PlayerReviews collection will be initialized empty by Player constructor.
+                // If viewModel.Reviews string from the form is meant for a different field 
+                // on Player (e.g., Player.GeneralNotes), map it to that field.
+                // For now, assuming it's not directly mapped or Player.Reviews was the string field to be removed.
                 ImageUrl = uniqueFileName != null ? $"/images/players/{uniqueFileName}" : null
-                // TeamId will be null by default as it's not in the ViewModel or Player entity mapping here
             };
+
+            // If viewModel.Reviews *was* intended to be a simple text field on Player, 
+            // ensure Player model has a string property (e.g., InitialReviewNote) and map to it:
+            // newPlayer.InitialReviewNote = viewModel.Reviews;
+
 
             try
             {
@@ -122,14 +114,9 @@ public class PlayersController : Controller
             }
             catch (Exception ex)
             {
-                // Log the error from service layer
                 ModelState.AddModelError(string.Empty, $"Error saving player: {ex.Message}");
-                // If image was saved but player saving failed, you might want to delete the orphaned image.
-                // This logic is omitted for brevity but is important in production.
             }
         }
-
-        // If ModelState is invalid or an error occurred during processing, return to the Create view
         return View(viewModel);
     }
 
@@ -146,9 +133,6 @@ public class PlayersController : Controller
         {
             return NotFound();
         }
-        // If you want to edit with file upload, you'll need an EditViewModel similar to PlayerCreateViewModel
-        // For now, assuming Player model is used directly for edit view and ImageUrl is a text path.
-        // TeamId is still handled here for existing players.
         ViewBag.TeamId = new SelectList(_context.Teams.OrderBy(t => t.Name), "Id", "Name", player.TeamId);
         return View(player);
     }
@@ -156,7 +140,12 @@ public class PlayersController : Controller
     // POST: Players/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,GamerTag,Description,PricePerHour,Rating,Reviews,ImageUrl,TeamId")] Player player)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,GamerTag,Description,PricePerHour,Rating,ImageUrl,TeamId")] Player player)
+    // IMPORTANT: Removed "Reviews" from Bind attribute here too, assuming it was the old string property.
+    // If "Reviews" in the Bind was meant for the ICollection<Review> PlayerReviews,
+    // binding collections of complex objects directly from forms is more complex and usually
+    // handled differently (e.g., by managing individual review items, not binding the whole collection).
+    // For now, this Edit POST does not handle updating the PlayerReviews collection.
     {
         ViewBag.IsAdmin = IsAdminUser();
         if (id != player.Id)
@@ -168,9 +157,6 @@ public class PlayersController : Controller
         {
             try
             {
-                // Note: File upload logic is NOT included in this Edit POST action.
-                // If you need to update the image, you'll need to add IFormFile to the parameters
-                // (preferably via a ViewModel) and handle it similarly to the Create action.
                 var updated = await _playerService.UpdatePlayerAsync(player);
                 if (!updated)
                 {
@@ -217,5 +203,41 @@ public class PlayersController : Controller
         await _playerService.DeletePlayerAsync(id);
         TempData["SuccessMessage"] = "Player deleted successfully!";
         return RedirectToAction(nameof(PlayerHire));
+    }
+
+    // Correct Details action with pagination for Reviews
+    public async Task<IActionResult> Details(int? id, int page = 1)
+    {
+        ViewBag.IsAdmin = IsAdminUser();
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var player = await _context.Players
+            .Include(p => p.Team)
+            .Include(p => p.PlayerReviews) // Use the correct collection name: PlayerReviews
+            .FirstOrDefaultAsync(p => p.Id == id.Value);
+
+        if (player == null)
+        {
+            return NotFound();
+        }
+
+        int pageSize = 5;
+        var allReviews = player.PlayerReviews != null ? player.PlayerReviews.OrderByDescending(r => r.ReviewDate).ToList() : new List<Review>();
+        var reviewsForPage = allReviews.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        var totalReviews = allReviews.Count;
+        var totalPages = (int)Math.Ceiling(totalReviews / (double)pageSize);
+
+        var viewModel = new PlayerDetailViewModel
+        {
+            Player = player,
+            ReviewsOnCurrentPage = reviewsForPage,
+            CurrentPage = page,
+            TotalPages = totalPages > 0 ? totalPages : 1
+        };
+
+        return View(viewModel);
     }
 }

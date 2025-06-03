@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
+using WebApplication1.Data;
 #nullable disable
 
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250602203521_InitialSchemaWithPlayerImageAndSeed")]
-    partial class InitialSchemaWithPlayerImageAndSeed
+    [Migration("20250603201514_Kryskata")]
+    partial class Kryskata
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -91,35 +91,19 @@ namespace WebApplication1.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "ADMIN_USER_GUID",
+                            Id = "c288e079-5516-4142-90a6-4cf7f13e2ec5",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "24a6bc3f-c97b-4eaf-b117-72bec3ee0908",
+                            ConcurrencyStamp = "eebe388b-a97f-4f44-a9b8-baa26c95a5bb",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPq8iJrNz2D9JUTUUJaJTL01pyL7sHcryj/e8UQPSQ3PSf5THvSX/bafsNIRgfm/aA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDIXRDGOfLO05NHN4hOECiTQh49aGGd4VUG15P82IKak25MiQDOidPoKNAMfZBHb4Q==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "6ccff6fa-a62a-4eb0-821e-bf33f9d026e3",
+                            SecurityStamp = "a01fcec3-4fcd-41be-a1e0-bec10e15b8e1",
                             TwoFactorEnabled = false,
                             UserName = "admin"
-                        },
-                        new
-                        {
-                            Id = "HERO_USER_GUID",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "8515d254-bd2c-431e-828b-36391bfd94f5",
-                            Email = "hero@example.com",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "HERO@EXAMPLE.COM",
-                            NormalizedUserName = "HERO",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOnwIl+B1C6cp1L+uN+hRVaM6yDTgv0sRSCEIMPzxIABik17HNv3bT6SPqzYJSoGdg==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "03874ea1-852e-4e78-a222-b2cf6544bd1f",
-                            TwoFactorEnabled = false,
-                            UserName = "hero"
                         });
                 });
 
@@ -152,7 +136,7 @@ namespace WebApplication1.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "ADMIN_ROLE_GUID",
+                            Id = "40c08448-1b69-4869-aab3-66a63ed8eb84",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -247,8 +231,8 @@ namespace WebApplication1.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "ADMIN_USER_GUID",
-                            RoleId = "ADMIN_ROLE_GUID"
+                            UserId = "c288e079-5516-4142-90a6-4cf7f13e2ec5",
+                            RoleId = "40c08448-1b69-4869-aab3-66a63ed8eb84"
                         });
                 });
 
@@ -279,21 +263,10 @@ namespace WebApplication1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("ExperiencePoints")
-                        .HasColumnType("bigint");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("GamerTag")
                         .IsRequired()
@@ -301,27 +274,23 @@ namespace WebApplication1.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("LastLoginDate")
-                        .HasColumnType("datetime2");
+                    b.Property<decimal>("PricePerHour")
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Level")
-                        .HasColumnType("int");
+                    b.Property<double>("Rating")
+                        .HasColumnType("float");
 
-                    b.Property<DateTime>("RegistrationDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("Reviews")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("TeamId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("VirtualCurrencyBalance")
-                        .HasColumnType("decimal(18,2)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId")
-                        .IsUnique();
 
                     b.HasIndex("GamerTag")
                         .IsUnique();
@@ -334,29 +303,35 @@ namespace WebApplication1.Migrations
                         new
                         {
                             Id = 1,
-                            ApplicationUserId = "ADMIN_USER_GUID",
-                            Description = "The admin's player profile",
-                            Email = "admin@example.com",
-                            ExperiencePoints = 10000L,
-                            GamerTag = "AdminPlayer",
-                            LastLoginDate = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(844),
-                            Level = 10,
-                            RegistrationDate = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(844),
-                            TeamId = 1,
-                            VirtualCurrencyBalance = 500.00m
+                            Description = "Top tier player with 5 years of competitive experience.",
+                            GamerTag = "ProGamerX",
+                            ImageUrl = "https://example.com/images/progamerx.png",
+                            PricePerHour = 50.00m,
+                            Rating = 4.7999999999999998,
+                            Reviews = "Excellent communication and skill.",
+                            TeamId = 1
                         },
                         new
                         {
                             Id = 2,
-                            ApplicationUserId = "HERO_USER_GUID",
-                            Description = "A heroic player",
-                            Email = "hero@example.com",
-                            ExperiencePoints = 2500L,
-                            GamerTag = "HeroPlayer",
-                            Level = 5,
-                            RegistrationDate = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(850),
-                            TeamId = 2,
-                            VirtualCurrencyBalance = 100.00m
+                            Description = "Specializes in strategy and team coordination.",
+                            GamerTag = "StrategistSupreme",
+                            ImageUrl = "https://example.com/images/strategistsupreme.png",
+                            PricePerHour = 40.00m,
+                            Rating = 4.5,
+                            Reviews = "Great tactical mind, helped our team immensely.",
+                            TeamId = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Up and coming player, eager to learn and assist.",
+                            GamerTag = "NewTalent",
+                            ImageUrl = "https://example.com/images/newtalent.png",
+                            PricePerHour = 20.00m,
+                            Rating = 3.8999999999999999,
+                            Reviews = "Good potential, friendly and responsive.",
+                            TeamId = 1
                         });
                 });
 
@@ -389,14 +364,14 @@ namespace WebApplication1.Migrations
                         new
                         {
                             Id = 1,
-                            DateCreated = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(823),
+                            DateCreated = new DateTime(2025, 6, 3, 20, 15, 14, 392, DateTimeKind.Utc).AddTicks(9848),
                             Description = "The first team",
                             Name = "Team Alpha"
                         },
                         new
                         {
                             Id = 2,
-                            DateCreated = new DateTime(2025, 6, 2, 20, 35, 21, 298, DateTimeKind.Utc).AddTicks(825),
+                            DateCreated = new DateTime(2025, 6, 3, 20, 15, 14, 392, DateTimeKind.Utc).AddTicks(9849),
                             Description = "The second team",
                             Name = "Team Bravo"
                         });
@@ -455,17 +430,9 @@ namespace WebApplication1.Migrations
 
             modelBuilder.Entity("Player", b =>
                 {
-                    b.HasOne("ApplicationUser", "ApplicationUser")
-                        .WithOne()
-                        .HasForeignKey("Player", "ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Team", "Team")
                         .WithMany("Players")
                         .HasForeignKey("TeamId");
-
-                    b.Navigation("ApplicationUser");
 
                     b.Navigation("Team");
                 });
