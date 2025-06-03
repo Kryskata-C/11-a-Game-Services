@@ -1,35 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering; // Required for SelectList
-using Microsoft.EntityFrameworkCore; // Required for _context and .OrderBy
-using System.Linq; // Required for .OrderBy
+﻿// File: WebApplication1/Controllers/PlayersController.cs
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Threading.Tasks;
-using WebApplication1.Services; // Your IPlayerService
-// Assuming your Player model is in the default Models folder or WebApplication1 namespace
-// If Player is in WebApplication1.Models, ensure: using WebApplication1.Models;
-// Assuming ApplicationDbContext is in the default Data folder or WebApplication1 namespace
-// If ApplicationDbContext is in WebApplication1.Data, ensure: using WebApplication1.Data;
-// Assuming ApplicationUser is in WebApplication1.Data.Entities or WebApplication1
-// If ApplicationUser is in WebApplication1.Data.Entities, ensure: using WebApplication1.Data.Entities;
-using Microsoft.AspNetCore.Identity; // For User.IsInRole if not using UserManager
+using WebApplication1.Services;     // Your service namespace
+using WebApplication1.Models;     // Your models namespace (for Player, PlayerCreateViewModel)
+using Microsoft.AspNetCore.Hosting; // For IWebHostEnvironment
+using System.IO;                    // For Path, FileStream, Directory
+using Microsoft.AspNetCore.Http;    // For IFormFile (though usually referenced via model)
+using System;                       // For Guid
 
 public class PlayersController : Controller
 {
     private readonly IPlayerService _playerService;
-    private readonly ApplicationDbContext _context; // Added for accessing Teams for dropdown
-    // private readonly UserManager<ApplicationUser> _userManager; // Uncomment if you need UserManager for roles
+    private readonly ApplicationDbContext _context; // For Edit actions if they still use Team
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
-    // Updated constructor to inject ApplicationDbContext
-    public PlayersController(IPlayerService playerService, ApplicationDbContext context /*, UserManager<ApplicationUser> userManager */)
+    public PlayersController(IPlayerService playerService, ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
     {
         _playerService = playerService;
-        _context = context; // Initialize DbContext
-        // _userManager = userManager; // Uncomment if using UserManager
+        _context = context;
+        _webHostEnvironment = webHostEnvironment;
     }
 
-    // PlayerHire action to serve PlayerHire.cshtml
+    private bool IsAdminUser()
+    {
+        return HttpContext.Session.GetString("IsAdmin") == "true";
+    }
+
     public async Task<IActionResult> PlayerHire()
     {
-        ViewBag.IsAdmin = User.IsInRole("Admin");
+        ViewBag.IsAdmin = IsAdminUser();
         var players = await _playerService.GetAllPlayersAsync();
         if (players == null)
         {
@@ -38,16 +40,14 @@ public class PlayersController : Controller
         return View("PlayerHire", players);
     }
 
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
-        ViewBag.IsAdmin = User.IsInRole("Admin");
-        var players = await _playerService.GetAllPlayersAsync();
-        return View(players); // This should point to Views/Players/Index.cshtml
+        return RedirectToAction(nameof(PlayerHire));
     }
 
     public async Task<IActionResult> Details(int? id)
     {
-        ViewBag.IsAdmin = User.IsInRole("Admin");
+        ViewBag.IsAdmin = IsAdminUser();
         if (id == null)
         {
             return NotFound();
@@ -60,33 +60,83 @@ public class PlayersController : Controller
         return View(player);
     }
 
+    // GET: Players/Create
     public IActionResult Create()
     {
-        ViewBag.IsAdmin = User.IsInRole("Admin");
-        // Populate ViewBag for Team dropdown
-        ViewBag.TeamId = new SelectList(_context.Teams.OrderBy(t => t.Name), "Id", "Name");
-        return View(new Player());
+        ViewBag.IsAdmin = IsAdminUser();
+        return View(new PlayerCreateViewModel()); // Use the ViewModel
     }
 
+    // POST: Players/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // Ensure Bind includes ImageUrl if it's part of your Player model and form
-    public async Task<IActionResult> Create([Bind("GamerTag,Description,PricePerHour,Rating,Reviews,ImageUrl,TeamId")] Player player)
+    public async Task<IActionResult> Create(PlayerCreateViewModel viewModel)
     {
-        ViewBag.IsAdmin = User.IsInRole("Admin"); // In case of returning to View with errors
+        ViewBag.IsAdmin = IsAdminUser();
+
         if (ModelState.IsValid)
         {
-            await _playerService.CreatePlayerAsync(player);
-            return RedirectToAction(nameof(PlayerHire)); // Or nameof(Index) if that's your main list
+            string uniqueFileName = null;
+            if (viewModel.ImageFile != null && viewModel.ImageFile.Length > 0)
+            {
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "players");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(viewModel.ImageFile.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                try
+                {
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await viewModel.ImageFile.CopyToAsync(fileStream);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error (using a proper logging framework is recommended)
+                    ModelState.AddModelError(string.Empty, $"Error uploading image: {ex.Message}");
+                    return View(viewModel); // Return to view with error
+                }
+            }
+
+            Player newPlayer = new Player
+            {
+                GamerTag = viewModel.GamerTag,
+                Description = viewModel.Description,
+                PricePerHour = viewModel.PricePerHour,
+                Rating = viewModel.Rating,
+                Reviews = viewModel.Reviews,
+                ImageUrl = uniqueFileName != null ? $"/images/players/{uniqueFileName}" : null
+                // TeamId will be null by default as it's not in the ViewModel or Player entity mapping here
+            };
+
+            try
+            {
+                await _playerService.CreatePlayerAsync(newPlayer);
+                TempData["SuccessMessage"] = "Player created successfully!";
+                return RedirectToAction(nameof(PlayerHire));
+            }
+            catch (Exception ex)
+            {
+                // Log the error from service layer
+                ModelState.AddModelError(string.Empty, $"Error saving player: {ex.Message}");
+                // If image was saved but player saving failed, you might want to delete the orphaned image.
+                // This logic is omitted for brevity but is important in production.
+            }
         }
-        // If ModelState is invalid, repopulate ViewBag for Team dropdown before returning view
-        ViewBag.TeamId = new SelectList(_context.Teams.OrderBy(t => t.Name), "Id", "Name", player.TeamId);
-        return View(player);
+
+        // If ModelState is invalid or an error occurred during processing, return to the Create view
+        return View(viewModel);
     }
 
+    // GET: Players/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
-        ViewBag.IsAdmin = User.IsInRole("Admin");
+        ViewBag.IsAdmin = IsAdminUser();
         if (id == null)
         {
             return NotFound();
@@ -96,17 +146,19 @@ public class PlayersController : Controller
         {
             return NotFound();
         }
-        // Populate ViewBag for Team dropdown, pre-selecting current team
+        // If you want to edit with file upload, you'll need an EditViewModel similar to PlayerCreateViewModel
+        // For now, assuming Player model is used directly for edit view and ImageUrl is a text path.
+        // TeamId is still handled here for existing players.
         ViewBag.TeamId = new SelectList(_context.Teams.OrderBy(t => t.Name), "Id", "Name", player.TeamId);
         return View(player);
     }
 
+    // POST: Players/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // Ensure Bind includes ImageUrl
     public async Task<IActionResult> Edit(int id, [Bind("Id,GamerTag,Description,PricePerHour,Rating,Reviews,ImageUrl,TeamId")] Player player)
     {
-        ViewBag.IsAdmin = User.IsInRole("Admin"); // In case of returning to View with errors
+        ViewBag.IsAdmin = IsAdminUser();
         if (id != player.Id)
         {
             return NotFound();
@@ -114,31 +166,37 @@ public class PlayersController : Controller
 
         if (ModelState.IsValid)
         {
-            var updated = await _playerService.UpdatePlayerAsync(player);
-            if (!updated)
+            try
             {
-                if (!await _playerService.PlayerExistsAsync(player.Id))
+                // Note: File upload logic is NOT included in this Edit POST action.
+                // If you need to update the image, you'll need to add IFormFile to the parameters
+                // (preferably via a ViewModel) and handle it similarly to the Create action.
+                var updated = await _playerService.UpdatePlayerAsync(player);
+                if (!updated)
                 {
-                    return NotFound();
+                    if (!await _playerService.PlayerExistsAsync(player.Id)) { return NotFound(); }
+                    ModelState.AddModelError(string.Empty, "Could not update player.");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "An error occurred updating the player. It might have been modified or deleted. Please try again.");
-                    // Repopulate ViewBag for Team dropdown if returning to view with error
-                    ViewBag.TeamId = new SelectList(_context.Teams.OrderBy(t => t.Name), "Id", "Name", player.TeamId);
-                    return View(player);
+                    TempData["SuccessMessage"] = "Player updated successfully!";
+                    return RedirectToAction(nameof(PlayerHire));
                 }
             }
-            return RedirectToAction(nameof(PlayerHire)); // Or nameof(Index)
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _playerService.PlayerExistsAsync(player.Id)) { return NotFound(); }
+                ModelState.AddModelError(string.Empty, "The record was modified by another user. Please try again.");
+            }
         }
-        // If ModelState is invalid, repopulate ViewBag for Team dropdown
         ViewBag.TeamId = new SelectList(_context.Teams.OrderBy(t => t.Name), "Id", "Name", player.TeamId);
         return View(player);
     }
 
+    // GET: Players/Delete/5
     public async Task<IActionResult> Delete(int? id)
     {
-        ViewBag.IsAdmin = User.IsInRole("Admin");
+        ViewBag.IsAdmin = IsAdminUser();
         if (id == null)
         {
             return NotFound();
@@ -151,11 +209,13 @@ public class PlayersController : Controller
         return View(player);
     }
 
+    // POST: Players/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         await _playerService.DeletePlayerAsync(id);
-        return RedirectToAction(nameof(PlayerHire)); // Or nameof(Index)
+        TempData["SuccessMessage"] = "Player deleted successfully!";
+        return RedirectToAction(nameof(PlayerHire));
     }
 }

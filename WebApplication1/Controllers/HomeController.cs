@@ -37,10 +37,58 @@ namespace WebApplication1.Controllers
         {
             return View();
         }
-
-        [HttpGet]
+        [HttpGet] 
         public IActionResult Login()
         {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult Login(string username, string password)
+        {
+            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users.txt");
+            HttpContext.Session.SetInt32("Funds", 100000); //For now until i make it dynamic with the user profile
+            if (!System.IO.File.Exists(filePath))
+            {
+                ViewBag.Message = "User storage not found.";
+                return View();
+            }
+
+            var lines = System.IO.File.ReadAllLines(filePath);
+
+            foreach (var line in lines)
+            {
+                var userMatch = System.Text.RegularExpressions.Regex.Match(
+                    line,
+                    @"user\s+""(.+?)""\s+\{\s+password:\s+""(.+?)"",\s+since:\s+""(.+?)"",\s+spent:\s+(\d+),\s+mosthired:\s+\[(.*?)\],\s+reviews:\s+\[(.*?)\]\s+\}"
+                );
+
+                if (userMatch.Success)
+                {
+                    var storedUsername = userMatch.Groups[1].Value;
+                    var storedPassword = userMatch.Groups[2].Value;
+
+                    // Make username check case-insensitive for login robustness
+                    if (storedUsername.Equals(username, StringComparison.OrdinalIgnoreCase) && storedPassword == password)
+                    {
+                        HttpContext.Session.SetString("Username", storedUsername); // Store the username from file (preserves casing)
+
+                        // Check if the logged-in user is admin (e.g., username is "admin")
+                        if (storedUsername.Equals("admin", StringComparison.OrdinalIgnoreCase))
+                        {
+                            HttpContext.Session.SetString("IsAdmin", "true");
+                        }
+                        else
+                        {
+                            // Ensure IsAdmin is not set or is removed for non-admin users
+                            HttpContext.Session.Remove("IsAdmin");
+                        }
+
+                        return RedirectToAction("Index");
+                    }
+                }
+            }
+
+            ViewBag.Message = "Invalid username or password.";
             return View();
         }
 
@@ -129,43 +177,7 @@ namespace WebApplication1.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpPost]
-        public IActionResult Login(string username, string password)
-        {
-            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users.txt");
-            HttpContext.Session.SetInt32("Funds", 100000); //For now until i make it dynamic with the user profile
-            if (!System.IO.File.Exists(filePath))
-            {
-                ViewBag.Message = "User storage not found.";
-                return View();
-            }
-
-            var lines = System.IO.File.ReadAllLines(filePath);
-
-            foreach (var line in lines)
-            {
-                var userMatch = System.Text.RegularExpressions.Regex.Match(
-                    line,
-                    @"user\s+""(.+?)""\s+\{\s+password:\s+""(.+?)"",\s+since:\s+""(.+?)"",\s+spent:\s+(\d+),\s+mosthired:\s+\[(.*?)\],\s+reviews:\s+\[(.*?)\]\s+\}"
-                );
-
-
-                if (userMatch.Success)
-                {
-                    var storedUsername = userMatch.Groups[1].Value;
-                    var storedPassword = userMatch.Groups[2].Value;
-
-                    if (storedUsername == username && storedPassword == password)
-                    {
-                        HttpContext.Session.SetString("Username", username);
-                        return RedirectToAction("Index");
-                    }
-                }
-            }
-
-            ViewBag.Message = "Invalid username or password.";
-            return View();
-        }
+       
 
         public new IActionResult User()
         {
