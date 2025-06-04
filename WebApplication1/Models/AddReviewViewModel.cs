@@ -4,7 +4,7 @@ namespace WebApplication1.Models
 {
     public class AddReviewViewModel
     {
-        public int PlayerId { get; set; } 
+        public int? PlayerId { get; set; }
 
         [Required(ErrorMessage = "Your name is required.")]
         [StringLength(100)]

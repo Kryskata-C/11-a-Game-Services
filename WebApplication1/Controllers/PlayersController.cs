@@ -29,16 +29,16 @@ public class PlayersController : Controller
     }
 
     public async Task<IActionResult> PlayerHire(
-    string currentSearchTerm,
-    string searchTerm,
-    string sortOrder,
-    int? pageNumber)
+        string currentSearchTerm,
+        string searchTerm,
+        string sortOrder,
+        int? pageNumber)
     {
-        ViewBag.IsAdmin = IsAdminUser();
+        ViewBag.IsAdmin = User.IsInRole("Admin"); 
 
         if (searchTerm != null)
         {
-            pageNumber = 1;
+            pageNumber = 1; 
         }
         else
         {
@@ -50,14 +50,13 @@ public class PlayersController : Controller
             sortOrder = "gamertag_asc"; 
         }
 
-        int pageSize = 6; 
+        int pageSize = 6;
         int currentPageNumber = pageNumber ?? 1;
 
         var serviceResult = await _playerService.GetAllPlayersAsync(searchTerm, sortOrder, currentPageNumber, pageSize);
 
         var totalPages = (int)Math.Ceiling(serviceResult.TotalCount / (double)pageSize);
-        if (totalPages == 0) totalPages = 1;
-
+        if (totalPages == 0) totalPages = 1; 
 
         var viewModel = new PlayerHireViewModel
         {
@@ -71,7 +70,7 @@ public class PlayersController : Controller
             RatingSortParam = sortOrder == "rating_asc" ? "rating_desc" : "rating_asc"
         };
 
-        return View("PlayerHire", viewModel);
+        return View("PlayerHire", viewModel); 
     }
 
     public IActionResult Index()

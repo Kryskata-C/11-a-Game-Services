@@ -2,31 +2,226 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = Model.PlayerName;
+    double averageRating = 0;
+    if (Model.Reviews != null && Model.Reviews.Any())
+    {
+        averageRating = Model.Reviews.Average(r => r.StarRating);
+    }
+    int reviewRenderIndex = 0;
 }
 
-<link rel="stylesheet" href="~/css/playerInfo.css" asp-append-version="true" />
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+        padding-top: 20px;
+        padding-bottom: 50px;
+    }
 
+    .details-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        animation: fadeInScaleUp 0.8s ease-out forwards;
+        overflow: hidden;
+    }
+
+    .player-image-large {
+        width: 100%;
+        max-width: 400px; 
+        height: auto;
+        max-height: 400px;
+        object-fit: cover;
+        border-radius: 15px;
+        display: block;
+        margin: 0 auto 30px auto;
+        border: 3px solid #e94560;
+        box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+        transition: transform 0.5s ease, box-shadow 0.5s ease;
+        animation: imagePulse 4s infinite alternate;
+    }
+    .player-image-large:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(233, 69, 96, 0.5);
+    }
+
+
+    .player-title {
+        color: #e94560;
+        text-align: center;
+        font-size: 2.8em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        text-shadow: 0 0 10px #e94560, 0 0 20px #e94560;
+        animation: pulsateTitle 3s infinite alternate;
+    }
+
+    .player-description {
+        color: #c0c0c0;
+        font-size: 1.1em;
+        line-height: 1.7;
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 0 20px;
+        animation: slideInText 0.8s 0.2s ease-out forwards;
+        opacity: 0;
+    }
+
+    .review-section {
+        margin-top: 30px;
+        padding: 25px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        border-top: 2px solid #e94560;
+        animation: fadeInUp 0.7s 0.4s ease-out forwards;
+        opacity: 0;
+    }
+
+    .review-heading {
+        color: #1abc9c;
+        font-size: 2em;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 25px;
+        text-shadow: 0 0 8px #1abc9c;
+    }
+
+    .stars {
+        text-align: center;
+        font-size: 2.5em;
+        margin-bottom: 20px;
+        animation: popInStars 1s 0.6s ease-out forwards;
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    .star {
+        color: #f1c40f;
+        text-shadow: 0 0 5px #f1c40f;
+        margin: 0 2px;
+        transition: transform 0.2s ease-in-out;
+        display: inline-block;
+    }
+    .star:hover {
+        transform: scale(1.3);
+    }
+    
+    .review-list {
+        margin-top: 20px;
+    }
+
+    .review-item {
+        background: rgba(0, 0, 0, 0.15);
+        border-left: 4px solid #1abc9c;
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        color: #b0b0b0;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: slideInReviewItem 0.5s ease-out forwards;
+        opacity: 0;
+    }
+    .review-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .review-item strong {
+        color: #1abc9c;
+        font-weight: 600;
+    }
+
+     fadeInScaleUp {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+     pulsateTitle {
+        0% { text-shadow: 0 0 5px #e94560, 0 0 10px #e94560; }
+        100% { text-shadow: 0 0 10px #e94560, 0 0 20px #e94560, 0 0 30px #ff5777; }
+    }
+
+     slideInText {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+     imagePulse {
+        0% { box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3); transform: scale(1); }
+        50% { box-shadow: 0 10px 40px rgba(233, 69, 96, 0.5), 0 0 20px rgba(233, 69, 96, 0.3); transform: scale(1.02); }
+        100% { box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3); transform: scale(1); }
+    }
+
+     popInStars {
+        from { opacity: 0; transform: scale(0.5) rotate(-180deg); }
+        to { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+    
+     fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+     slideInReviewItem {
+        from { opacity: 0; transform: translateX(-30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+</style>
 
 <div class="details-container">
-    <img class="player-image-large" src="@Model.BigImageUrl" alt="Player Image" />
+    @if (!string.IsNullOrEmpty(Model.BigImageUrl))
+    {
+        <img class="player-image-large" src="@Model.BigImageUrl" alt="Player Image: @Model.PlayerName" />
+    }
+    else
+    {
+        <img class="player-image-large" src="/images/default-player-large.png" alt="Default Player Image" />
+    }
+    
     <div class="player-title">@Model.PlayerName</div>
     <div class="player-description">@Model.Description</div>
 
-    <div class="review-section">
-        <div class="review-heading">Reviews</div>
-        <div class="stars">
-            @for (int i = 0; i < 5; i++)
-            {
-                <span class="star">@(i < Model.Reviews.Average(r => r.StarRating) ? "★" : "☆")</span>
-            }
+    @if (Model.Reviews != null && Model.Reviews.Any())
+    {
+        <div class="review-section">
+            <div class="review-heading">Player Reviews</div>
+            <div class="stars">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <span class="star">@(i <= Math.Round(averageRating) ? "★" : "☆")</span>
+                }
+                <span style="font-size: 0.5em; color: #f1c40f; vertical-align: middle; margin-left: 10px;">(@averageRating.ToString("0.0") / 5)</span>
+            </div>
+            <div class="review-list">
+                @foreach (var review in Model.Reviews)
+                {
+                    reviewRenderIndex++;
+                    <div class="review-item" style="animation-delay: @(reviewRenderIndex * 0.1)s;">
+                        <strong>@review.ReviewerName:</strong> @review.Comment
+                        <div style="font-size: 0.8em; text-align: right; margin-top: 5px;">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span class="star" style="font-size:0.7em; color: @(i <= review.StarRating ? "#f1c40f" : "#6c757d");">★</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
-        <div class="review-list">
-            @foreach (var review in Model.Reviews)
-            {
-                <div class="review-item">
-                    <strong>@review.ReviewerName:</strong> @review.Comment
-                </div>
-            }
+    }
+    else
+    {
+         <div class="review-section" style="text-align:center; opacity:1; animation:none;">
+            <div class="review-heading">Player Reviews</div>
+            <p style="color: #c0c0c0; font-size: 1.1em;">No reviews yet for this player.</p>
         </div>
-    </div>
+    }
 </div>

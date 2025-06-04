@@ -1,24 +1,248 @@
 ﻿@model WebApplication1.Models.LoginViewModel
 @{
     ViewData["Title"] = "Log in";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Ensure this path is correct
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+@section Styles {
+    <style>
+        :root { /* Fallback */
+            --primary-color: #e94560;
+            --primary-hover-color: #ff5777;
+            --green-accent-color: #00ff91;
+            --background-color: #1a1a2e;
+            --surface-color: rgba(22, 33, 62, 0.85);
+            --text-color: #e0e0e0;
+            --text-muted-color: #a0a0b0;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --animation-duration: 0.5s;
+        }
+
+        .login-container {
+            max-width: 480px; /* Wider for better spacing */
+            margin: 60px auto; /* More top margin */
+            padding: 40px; /* More padding */
+            background: var(--surface-color);
+            border-radius: 15px; /* More rounded */
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.3), 0 0 20px var(--primary-color) inset;
+            animation: loginBoxFadeIn var(--animation-duration-slow) ease-out forwards;
+        }
+
+        @@keyframes loginBoxFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-header {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em; /* Larger header */
+            font-weight: 700;
+            text-shadow: 0 0 10px var(--primary-color);
+            animation: pulsateLoginTitle 3s infinite alternate;
+        }
+
+        @@keyframes pulsateLoginTitle {
+            0% {
+                text-shadow: 0 0 8px var(--primary-color);
+                opacity: 0.8;
+            }
+
+            100% {
+                text-shadow: 0 0 15px var(--primary-color), 0 0 25px var(--primary-hover-color);
+                opacity: 1;
+            }
+        }
+
+        .login-form .form-group {
+            margin-bottom: 25px; /* More space between groups */
+            opacity: 0;
+            transform: translateY(15px);
+            animation: inputFieldSlideUp var(--animation-duration) ease-out forwards;
+        }
+
+            .login-form .form-group:nth-child(1) {
+                animation-delay: 0.2s;
+            }
+            /* Validation Summary if present */
+            .login-form .form-group:nth-child(2) {
+                animation-delay: 0.3s;
+            }
+            /* Username */
+            .login-form .form-group:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+            /* Password */
+            .login-form .form-group:nth-child(4) {
+                animation-delay: 0.5s;
+            }
+        /* Remember Me */
+        /* Submit button is outside .form-group in this structure, will animate separately */
+
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted-color);
+            font-weight: 500;
+        }
+
+        .login-form .form-control {
+            background-color: rgba(0,0,0,0.25);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 1em;
+            width: 100%;
+        }
+
+            .login-form .form-control:focus {
+                background-color: rgba(0,0,0,0.3);
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem rgba(233, 69, 96, 0.25);
+            }
+
+        .login-form .checkbox label {
+            color: var(--text-muted-color);
+            font-weight: normal;
+            display: flex; /* Align checkbox and text */
+            align-items: center;
+        }
+
+        .login-form .checkbox input[type="checkbox"] {
+            margin-right: 8px;
+            width: 18px; /* Larger checkbox */
+            height: 18px;
+            accent-color: var(--primary-color); /* Modern way to color checkboxes */
+            cursor: pointer;
+        }
+
+            .login-form .checkbox input[type="checkbox"]:focus {
+                box-shadow: 0 0 0 0.2rem rgba(233, 69, 96, 0.25);
+                outline: none;
+            }
+
+
+        .login-submit {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 1.1em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-light);
+            background: linear-gradient(45deg, var(--primary-accent-color), var(--primary-accent-hover));
+            border: none;
+            border-radius: 50px; /* Pill shape */
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+            margin-top: 10px; /* Space above button */
+            animation: buttonScaleIn 0.6s 0.6s ease-out backwards; /* Backwards fills before animation starts */
+            opacity: 0; /* Start hidden for animation */
+        }
+
+            .login-submit:hover {
+                transform: scale(1.03) translateY(-2px);
+                box-shadow: 0 8px 20px rgba(233, 69, 96, 0.4);
+            }
+
+        @@keyframes buttonScaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+
+        .login-error.text-danger ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 0;
+            margin-bottom: 20px; /* Space if summary error exists */
+        }
+
+        .login-error.text-danger li {
+            padding: 10px;
+            background-color: rgba(220, 53, 69, 0.1);
+            border-left: 4px solid var(--danger-color);
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .text-danger { /* For inline field errors */
+            font-size: 0.85em;
+            margin-top: 5px;
+            display: block;
+        }
+
+
+        .register-link {
+            text-align: center;
+            margin-top: 25px;
+            color: var(--text-muted-color);
+            animation: inputFieldSlideUp var(--animation-duration) 0.7s ease-out forwards;
+            opacity: 0;
+        }
+
+            .register-link .register-btn { /* Changed from .register-btn to .register-link a */
+                color: var(--green-accent-color);
+                font-weight: bold;
+                text-decoration: none;
+                padding: 5px 8px;
+                border-radius: 4px;
+                transition: background-color 0.3s ease, color 0.3s ease;
+            }
+
+                .register-link .register-btn:hover {
+                    background-color: rgba(0, 255, 145, 0.15);
+                    color: var(--green-accent-hover);
+                    text-decoration: none;
+                }
+
+        @@keyframes inputFieldSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+    </style>
+}
+
 <div class="login-container">
     <h1 class="login-header">@ViewData["Title"]</h1>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger login-error"></div> <form asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="login-form">
+    <form asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="login-form">
         @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger login-error form-group"></div>
 
         <div class="form-group">
             <label asp-for="Username"></label>
-            <input asp-for="Username" class="form-control" /> <span asp-validation-for="Username" class="text-danger"></span>
+            <input asp-for="Username" class="form-control" placeholder="Enter your username" />
+            <span asp-validation-for="Username" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label asp-for="Password"></label>
-            <input asp-for="Password" class="form-control" />
+            <input asp-for="Password" class="form-control" placeholder="Enter your password" />
             <span asp-validation-for="Password" class="text-danger"></span>
         </div>
 
@@ -34,9 +258,9 @@
         <button type="submit" class="login-submit">Log In</button>
     </form>
 
-    <div class="register-link mt-3">
+    <div class="register-link">
         <span>Don't have an account?</span>
-        <a asp-action="Register" asp-controller="Account" class="register-btn">Register</a>
+        <a asp-action="Register" asp-controller="Account" class="register-btn">Register Now</a>
     </div>
 </div>
 

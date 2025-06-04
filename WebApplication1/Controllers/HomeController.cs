@@ -79,7 +79,7 @@ namespace WebApplication1.Controllers
 
         public IActionResult TeamHire()
         {
-            return View();
+            return RedirectToAction("Index", "Teams");
         }
 
         public IActionResult Basket()

@@ -11,15 +11,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250603232122_InitialSchemaWithStableSeedData")]
-    partial class InitialSchemaWithStableSeedData
+    [Migration("20250604223905_AddUserBalance")]
+    partial class AddUserBalance
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.5")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -32,6 +32,9 @@ namespace WebApplication1.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -42,6 +45,14 @@ namespace WebApplication1.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -93,13 +104,14 @@ namespace WebApplication1.Migrations
                         {
                             Id = "f9e8d7c6-b5a4-3333-2222-1111fedcba98",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ac2ff6df-c2ff-46e8-bcbe-9c50bc9b3884",
+                            Balance = 0.00m,
+                            ConcurrencyStamp = "9d0c0cbb-bd0e-4ed4-a6f6-87eb7197a124",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPhCicgCo5N9sF4SByR3QzkLrKJMqzIx0RSw4xnhuvawUazv2tGU8LqXHmaJUy+G7A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKZ2SRi2ZFKHnL6i4kCbP2UTlE4WCf9xEuGtx5pRzKpyljr+Db7aFR2yInYogfnLfg==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "ABCDEF01-2345-6789-ABCD-EF0123456789",
                             TwoFactorEnabled = false,
@@ -300,7 +312,7 @@ namespace WebApplication1.Migrations
                             Id = 1,
                             Description = "Top tier player...",
                             GamerTag = "ProGamerX",
-                            ImageUrl = "https://example.com/images/progamerx.png",
+                            ImageUrl = "/images/playeruploads/default-player.png",
                             PricePerHour = 50.00m,
                             Rating = 4.7999999999999998,
                             TeamId = 1
@@ -310,7 +322,7 @@ namespace WebApplication1.Migrations
                             Id = 2,
                             Description = "Specializes in strategy...",
                             GamerTag = "StrategistSupreme",
-                            ImageUrl = "https://example.com/images/strategistsupreme.png",
+                            ImageUrl = "/images/playeruploads/default-player.png",
                             PricePerHour = 40.00m,
                             Rating = 4.5,
                             TeamId = 2
@@ -320,14 +332,23 @@ namespace WebApplication1.Migrations
                             Id = 3,
                             Description = "Up and coming player...",
                             GamerTag = "NewTalent",
-                            ImageUrl = "https://example.com/images/newtalent.png",
+                            ImageUrl = "/images/playeruploads/default-player.png",
                             PricePerHour = 20.00m,
                             Rating = 3.8999999999999999,
                             TeamId = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Description = "Prefers to work alone, but available.",
+                            GamerTag = "SoloStar",
+                            ImageUrl = "/images/playeruploads/default-player.png",
+                            PricePerHour = 30.00m,
+                            Rating = 4.2000000000000002
                         });
                 });
 
-            modelBuilder.Entity("Team", b =>
+            modelBuilder.Entity("WebApplication1.Data.Entities.Team", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -339,14 +360,23 @@ namespace WebApplication1.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PricePerHour")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -356,16 +386,22 @@ namespace WebApplication1.Migrations
                         new
                         {
                             Id = 1,
-                            DateCreated = new DateTime(2025, 6, 3, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3500),
+                            DateCreated = new DateTime(2025, 6, 4, 22, 39, 4, 889, DateTimeKind.Utc).AddTicks(1983),
                             Description = "The first team",
-                            Name = "Team Alpha"
+                            ImageUrl = "/images/default-team.png",
+                            Name = "Team Alpha",
+                            PricePerHour = 100.00m,
+                            Rating = 0.0
                         },
                         new
                         {
                             Id = 2,
-                            DateCreated = new DateTime(2025, 6, 3, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3502),
+                            DateCreated = new DateTime(2025, 6, 4, 22, 39, 4, 889, DateTimeKind.Utc).AddTicks(1988),
                             Description = "The second team",
-                            Name = "Team Bravo"
+                            ImageUrl = "/images/default-team.png",
+                            Name = "Team Bravo",
+                            PricePerHour = 120.00m,
+                            Rating = 0.0
                         });
                 });
 
@@ -379,9 +415,10 @@ namespace WebApplication1.Migrations
 
                     b.Property<string>("CommentText")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("PlayerId")
+                    b.Property<int?>("PlayerId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("ReviewDate")
@@ -389,14 +426,25 @@ namespace WebApplication1.Migrations
 
                     b.Property<string>("ReviewerName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("StarRating")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PlayerId");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Reviews");
 
@@ -406,7 +454,7 @@ namespace WebApplication1.Migrations
                             Id = 1,
                             CommentText = "Excellent communication and skill for ProGamerX!",
                             PlayerId = 1,
-                            ReviewDate = new DateTime(2025, 5, 29, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3625),
+                            ReviewDate = new DateTime(2025, 5, 30, 22, 39, 4, 889, DateTimeKind.Utc).AddTicks(2037),
                             ReviewerName = "UserA",
                             StarRating = 5
                         },
@@ -415,7 +463,7 @@ namespace WebApplication1.Migrations
                             Id = 2,
                             CommentText = "Very professional (ProGamerX).",
                             PlayerId = 1,
-                            ReviewDate = new DateTime(2025, 6, 1, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3632),
+                            ReviewDate = new DateTime(2025, 6, 2, 22, 39, 4, 889, DateTimeKind.Utc).AddTicks(2045),
                             ReviewerName = "UserB",
                             StarRating = 4
                         },
@@ -424,7 +472,7 @@ namespace WebApplication1.Migrations
                             Id = 3,
                             CommentText = "Great tactical mind (StrategistSupreme)!",
                             PlayerId = 2,
-                            ReviewDate = new DateTime(2025, 5, 31, 23, 21, 22, 484, DateTimeKind.Utc).AddTicks(3634),
+                            ReviewDate = new DateTime(2025, 6, 1, 22, 39, 4, 889, DateTimeKind.Utc).AddTicks(2047),
                             ReviewerName = "UserC",
                             StarRating = 5
                         });
@@ -483,9 +531,10 @@ namespace WebApplication1.Migrations
 
             modelBuilder.Entity("Player", b =>
                 {
-                    b.HasOne("Team", "Team")
+                    b.HasOne("WebApplication1.Data.Entities.Team", "Team")
                         .WithMany("Players")
-                        .HasForeignKey("TeamId");
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Team");
                 });
@@ -495,10 +544,22 @@ namespace WebApplication1.Migrations
                     b.HasOne("Player", "Player")
                         .WithMany("PlayerReviews")
                         .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("WebApplication1.Data.Entities.Team", "Team")
+                        .WithMany("Reviews")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Player");
+
+                    b.Navigation("Team");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Player", b =>
@@ -506,9 +567,11 @@ namespace WebApplication1.Migrations
                     b.Navigation("PlayerReviews");
                 });
 
-            modelBuilder.Entity("Team", b =>
+            modelBuilder.Entity("WebApplication1.Data.Entities.Team", b =>
                 {
                     b.Navigation("Players");
+
+                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

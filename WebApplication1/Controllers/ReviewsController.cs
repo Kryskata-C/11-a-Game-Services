@@ -1,58 +1,109 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using WebApplication1.Models;    
+using WebApplication1.Models;
 using Microsoft.AspNetCore.Identity;
-using System.Linq;
+using System.Security.Claims;
+using WebApplication1.Services;
 using System;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApplication1.Controllers
 {
+    [Authorize]
     public class ReviewsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IReviewService _reviewService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public ReviewsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public ReviewsController(IReviewService reviewService, UserManager<ApplicationUser> userManager)
         {
-            _context = context;
+            _reviewService = reviewService;
             _userManager = userManager;
         }
 
-        [Authorize] 
+        [HttpGet]
+        public async Task<IActionResult> Create(int playerId)
+        {
+            var player = await _reviewService.GetPlayerForReviewAsync(playerId);
+            if (player == null) return NotFound("Player not found.");
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            var viewModel = new AddReviewViewModel
+            {
+                PlayerId = playerId,
+                ReviewerName = currentUser?.UserName
+            };
+            ViewData["PlayerName"] = player.GamerTag;
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(AddReviewViewModel model)
+        {
+            Player player = null;
+            if (model.PlayerId.HasValue)
+            {
+                player = await _reviewService.GetPlayerForReviewAsync(model.PlayerId.Value);
+                if (player == null)
+                {
+                    ModelState.AddModelError("PlayerId", "Associated player not found.");
+                }
+            }
+
+            if (ModelState.IsValid)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                string reviewerName = string.IsNullOrWhiteSpace(model.ReviewerName) ? (currentUser?.UserName ?? "Anonymous") : model.ReviewerName;
+
+                try
+                {
+                    await _reviewService.AddPlayerReviewAsync(model, currentUser?.Id, reviewerName);
+                    TempData["SuccessMessage"] = "Review submitted successfully!";
+                    if (model.PlayerId.HasValue)
+                        return RedirectToAction("Details", "Players", new { id = model.PlayerId.Value });
+
+                    return RedirectToAction("Index", "Home");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, $"Could not save review: {ex.Message}");
+                }
+            }
+
+            if (model.PlayerId.HasValue && player != null)
+            {
+                ViewData["PlayerName"] = player.GamerTag;
+            }
+            else if (model.PlayerId.HasValue)
+            {
+                ViewData["PlayerName"] = "Selected Player";
+            }
+            return View(model);
+        }
+
+
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var review = await _context.Reviews
-                                       .Include(r => r.Player) 
-                                       .Include(r => r.Team)   
-                                       .FirstOrDefaultAsync(r => r.Id == id);
+            var review = await _reviewService.GetReviewWithPlayerAndTeamAsync(id);
+            if (review == null) return NotFound();
 
-            if (review == null)
-            {
-                return NotFound();
-            }
-
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (review.UserId != currentUserId && !User.IsInRole("Admin"))
-            {
-                return Forbid();
-            }
+            var currentUserId = _userManager.GetUserId(User);
+            if (review.UserId != currentUserId && !User.IsInRole("Admin")) return Forbid();
 
             var viewModel = new EditReviewViewModel
             {
                 Id = review.Id,
                 PlayerId = review.PlayerId,
-                PlayerName = review.Player?.GamerTag, 
+                PlayerName = review.Player?.GamerTag,
                 TeamId = review.TeamId,
-                TeamName = review.Team?.Name, 
+                TeamName = review.Team?.Name,
                 ReviewerName = review.ReviewerName,
                 CommentText = review.CommentText,
                 StarRating = review.StarRating,
-                OriginalUserId = review.UserId 
+                OriginalUserId = review.UserId
             };
 
             if (review.PlayerId.HasValue)
@@ -67,56 +118,26 @@ namespace WebApplication1.Controllers
             }
             else
             {
-                ViewData["ReviewSubjectName"] = "Item"; 
+                ViewData["ReviewSubjectName"] = "Item";
                 ViewData["ReviewSubjectType"] = "Item";
             }
-
-
             return View(viewModel);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Create(int playerId)
-        {
-            var player = await _context.Players.FindAsync(playerId);
-            if (player == null)
-            {
-                return NotFound("Player not found.");
-            }
-
-            var viewModel = new AddReviewViewModel { PlayerId = playerId };
-
-            if (User.Identity != null && User.Identity.IsAuthenticated)
-            {
-                var currentUser = await _userManager.GetUserAsync(User); 
-                if (currentUser != null)
-                {
-                    viewModel.ReviewerName = currentUser.UserName;
-                }
-            }
-
-            ViewData["PlayerName"] = player.GamerTag;
-            return View(viewModel);
-        }
-
-        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, EditReviewViewModel model)
         {
-            if (id != model.Id)
-            {
-                return NotFound();
-            }
+            if (id != model.Id) return NotFound();
 
             if (model.PlayerId.HasValue)
             {
-                ViewData["ReviewSubjectName"] = model.PlayerName ?? "Player"; 
+                ViewData["ReviewSubjectName"] = model.PlayerName ?? "Player";
                 ViewData["ReviewSubjectType"] = "Player";
             }
             else if (model.TeamId.HasValue)
             {
-                ViewData["ReviewSubjectName"] = model.TeamName ?? "Team"; 
+                ViewData["ReviewSubjectName"] = model.TeamName ?? "Team";
                 ViewData["ReviewSubjectType"] = "Team";
             }
             else
@@ -127,93 +148,57 @@ namespace WebApplication1.Controllers
 
             if (ModelState.IsValid)
             {
-                var reviewToUpdate = await _context.Reviews.FindAsync(model.Id);
-
-                if (reviewToUpdate == null)
-                {
-                    return NotFound();
-                }
-
-                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (reviewToUpdate.UserId != currentUserId && !User.IsInRole("Admin"))
-                {
-                    TempData["ErrorMessage"] = "You are not authorized to edit this review.";
-                    if (reviewToUpdate.PlayerId.HasValue)
-                        return RedirectToAction("Details", "Players", new { id = reviewToUpdate.PlayerId });
-                    if (reviewToUpdate.TeamId.HasValue)
-                        return RedirectToAction("Details", "Teams", new { id = reviewToUpdate.TeamId });
-                    return RedirectToAction("Index", "Home"); 
-                }
-
-                reviewToUpdate.CommentText = model.CommentText;
-                reviewToUpdate.StarRating = model.StarRating;
-                reviewToUpdate.ReviewDate = DateTime.UtcNow; 
-
+                var currentUserId = _userManager.GetUserId(User);
+                var isAdmin = User.IsInRole("Admin");
                 try
                 {
-                    _context.Update(reviewToUpdate);
-                    await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Review updated successfully!";
-
-                    if (reviewToUpdate.PlayerId.HasValue)
+                    var success = await _reviewService.UpdateReviewAsync(model, currentUserId, isAdmin);
+                    if (success)
                     {
-                        return RedirectToAction("Details", "Players", new { id = reviewToUpdate.PlayerId });
-                    }
-                    else if (reviewToUpdate.TeamId.HasValue)
-                    {
-                        return RedirectToAction("Details", "Teams", new { id = reviewToUpdate.TeamId });
-                    }
-                    return RedirectToAction("Index", "Home");
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await _context.Reviews.AnyAsync(e => e.Id == model.Id))
-                    {
-                        return NotFound();
+                        TempData["SuccessMessage"] = "Review updated successfully!";
+                        if (model.PlayerId.HasValue)
+                            return RedirectToAction("Details", "Players", new { id = model.PlayerId.Value });
+                        if (model.TeamId.HasValue)
+                            return RedirectToAction("Details", "Teams", new { id = model.TeamId.Value });
+                        return RedirectToAction("Index", "Home");
                     }
                     else
                     {
-                        ModelState.AddModelError(string.Empty, "The review was modified by another user. Please try again.");
+                        ModelState.AddModelError(string.Empty, "Could not update review. It may have been modified or you lack permission.");
                     }
                 }
-                catch (DbUpdateException)
+                catch (DbUpdateConcurrencyException)
                 {
-                    ModelState.AddModelError(string.Empty, "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
+                    ModelState.AddModelError(string.Empty, "The review was modified by another user. Please try again.");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, $"Error updating review: {ex.Message}");
                 }
             }
-
             return View(model);
         }
 
-        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Delete(int id, bool? saveChangesError = false)
         {
-            var review = await _context.Reviews
-                                       .AsNoTracking()
-                                       .Include(r => r.Player)
-                                       .Include(r => r.Team)
-                                       .FirstOrDefaultAsync(r => r.Id == id);
+            var review = await _reviewService.GetReviewWithPlayerAndTeamAsync(id);
+            if (review == null) return NotFound();
 
-            if (review == null)
-            {
-                return NotFound();
-            }
-
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentUserId = _userManager.GetUserId(User);
             if (review.UserId != currentUserId && !User.IsInRole("Admin"))
             {
                 TempData["ErrorMessage"] = "You are not authorized to delete this review.";
                 if (review.PlayerId.HasValue)
-                    return RedirectToAction("Details", "Players", new { id = review.PlayerId });
+                    return RedirectToAction("Details", "Players", new { id = review.PlayerId.Value });
                 if (review.TeamId.HasValue)
-                    return RedirectToAction("Details", "Teams", new { id = review.TeamId });
+                    return RedirectToAction("Details", "Teams", new { id = review.TeamId.Value });
                 return RedirectToAction("Index", "Home");
             }
 
             if (saveChangesError.GetValueOrDefault())
             {
-                ViewData["ErrorMessage"] = "Delete failed. Try again, and if the problem persists see your system administrator.";
+                ViewData["ErrorMessage"] = "Delete failed. Try again.";
             }
 
             if (review.PlayerId.HasValue)
@@ -228,125 +213,46 @@ namespace WebApplication1.Controllers
             }
             else
             {
-                ViewData["ReviewSubjectName"] = "Item"; 
+                ViewData["ReviewSubjectName"] = "Item";
                 ViewData["ReviewSubjectType"] = "Item";
             }
-
-            return View(review); 
+            return View(review);
         }
 
-        [Authorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id, int? PlayerId, int? TeamId) 
+        public async Task<IActionResult> DeleteConfirmed(int id, int? PlayerId, int? TeamId)
         {
-            var reviewToDelete = await _context.Reviews.FindAsync(id);
+            var currentUserId = _userManager.GetUserId(User);
+            var isAdmin = User.IsInRole("Admin");
+
+            var (canDelete, reviewToDelete) = await _reviewService.CanDeleteReviewAsync(id, currentUserId, isAdmin);
 
             if (reviewToDelete == null)
             {
                 TempData["ErrorMessage"] = "Review not found or already deleted.";
-                if (PlayerId.HasValue)
-                    return RedirectToAction("Details", "Players", new { id = PlayerId });
-                if (TeamId.HasValue)
-                    return RedirectToAction("Details", "Teams", new { id = TeamId });
-                return RedirectToAction("Index", "Home");
             }
-
-
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (reviewToDelete.UserId != currentUserId && !User.IsInRole("Admin"))
+            else if (!canDelete)
             {
                 TempData["ErrorMessage"] = "You are not authorized to delete this review.";
-                if (PlayerId.HasValue)
-                    return RedirectToAction("Details", "Players", new { id = PlayerId });
-                if (TeamId.HasValue)
-                    return RedirectToAction("Details", "Teams", new { id = TeamId });
-                return RedirectToAction("Index", "Home"); 
-            }
-
-            try
-            {
-                _context.Reviews.Remove(reviewToDelete);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Review deleted successfully.";
-            }
-            catch (DbUpdateException)
-            {
-                TempData["ErrorMessage"] = "Unable to delete review. Try again, and if the problem persists see your system administrator.";
-                return RedirectToAction(nameof(Delete), new { id = id, saveChangesError = true });
-            }
-
-            if (PlayerId.HasValue)
-            {
-                return RedirectToAction("Details", "Players", new { id = PlayerId });
-            }
-            else if (TeamId.HasValue)
-            {
-                return RedirectToAction("Details", "Teams", new { id = TeamId });
-            }
-
-            return RedirectToAction("Index", "Home");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(AddReviewViewModel model)
-        {
-            var player = await _context.Players
-                                     .Include(p => p.PlayerReviews)
-                                     .FirstOrDefaultAsync(p => p.Id == model.PlayerId);
-            if (player == null)
-            {
-                ModelState.AddModelError("", "Player not found. Unable to add review.");
-            }
-
-            string currentUserId = null;
-            if (User.Identity != null && User.Identity.IsAuthenticated)
-            {
-                var currentUser = await _userManager.GetUserAsync(User);
-                if (currentUser != null)
-                {
-                    currentUserId = currentUser.Id;
-                    if (string.IsNullOrWhiteSpace(model.ReviewerName))
-                    {
-                        model.ReviewerName = currentUser.UserName;
-                    }
-                }
-            }
-            if (string.IsNullOrWhiteSpace(model.ReviewerName) && ModelState.ContainsKey("ReviewerName"))
-            {
-            }
-
-
-            if (ModelState.IsValid && player != null)
-            {
-                var review = new WebApplication1.Models.Review 
-                {
-                    PlayerId = model.PlayerId,
-                    ReviewerName = model.ReviewerName, 
-                    CommentText = model.CommentText,
-                    StarRating = model.StarRating,
-                    ReviewDate = DateTime.UtcNow,
-                    UserId = currentUserId 
-                };
-
-                _context.Reviews.Add(review);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Review submitted successfully!";
-                return RedirectToAction("Details", "Players", new { id = model.PlayerId });
-            }
-
-            if (player != null)
-            {
-                ViewData["PlayerName"] = player.GamerTag;
             }
             else
             {
-                ViewData["PlayerName"] = "Selected Player"; 
+                try
+                {
+                    await _reviewService.DeleteReviewAsync(id);
+                    TempData["SuccessMessage"] = "Review deleted successfully.";
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = $"Error deleting review: {ex.Message}";
+                    return RedirectToAction(nameof(Delete), new { id = id, saveChangesError = true });
+                }
             }
-            return View(model);
-        }
 
+            if (PlayerId.HasValue) return RedirectToAction("Details", "Players", new { id = PlayerId.Value });
+            if (TeamId.HasValue) return RedirectToAction("Details", "Teams", new { id = TeamId.Value });
+            return RedirectToAction("Index", "Home");
+        }
     }
 }

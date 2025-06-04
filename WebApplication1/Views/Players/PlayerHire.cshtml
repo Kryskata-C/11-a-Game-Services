@@ -1,7 +1,305 @@
 ﻿@model WebApplication1.Models.PlayerHireViewModel
 @{
     ViewData["Title"] = "Hire a Player";
+    var random = new Random();
+    int playerRenderIndex = 0;
 }
+
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+    }
+
+    h1 {
+        color: #e94560;
+        text-align: center;
+        margin-bottom: 40px;
+        font-weight: bold;
+        text-shadow: 0 0 10px #e94560, 0 0 20px #e94560;
+        animation: pulsateTitle 3s infinite alternate;
+    }
+
+    .alert-success {
+        background-color: #1abc9c;
+        color: #fff;
+        border: none;
+        box-shadow: 0 4px 15px rgba(26, 188, 156, 0.3);
+        animation: fadeInDown 0.5s ease-out forwards; /* Added forwards */
+    }
+
+    .btn-primary {
+        background-color: #e94560;
+        border-color: #e94560;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(233, 69, 96, 0.3);
+    }
+
+        .btn-primary:hover {
+            background-color: #ff5777;
+            border-color: #ff5777;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(233, 69, 96, 0.5);
+        }
+
+    .form-control {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-color: #e94560;
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+            color: #fff;
+        }
+
+    .btn-outline-secondary {
+        color: #e94560;
+        border-color: #e94560;
+    }
+
+        .btn-outline-secondary:hover {
+            background-color: #e94560;
+            color: #fff;
+        }
+
+    .btn-outline-info {
+        color: #1abc9c;
+        border-color: #1abc9c;
+    }
+
+        .btn-outline-info:hover {
+            background-color: #1abc9c;
+            color: #fff;
+        }
+
+    .player-card-column {
+        animation: fadeInUp 0.5s ease-out forwards;
+        opacity: 0; /* Initial state, animation will make it visible */
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        overflow: hidden;
+        position: relative;
+    }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px #e94560;
+        }
+
+    .card-img-top {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.5s ease;
+    }
+
+    .card:hover .card-img-top {
+        transform: scale(1.1);
+    }
+
+    .card-title {
+        color: #e94560;
+        font-weight: bold;
+        margin-bottom: 0.75rem;
+    }
+
+    .card-text {
+        color: #c0c0c0;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+        .card-text strong {
+            color: #e0e0e0;
+        }
+
+        .card-text small.text-muted {
+            color: #aaa !important;
+        }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    .btn-info.btn-sm {
+        background-color: #3498db;
+        border-color: #3498db;
+    }
+
+    .btn-warning.btn-sm {
+        background-color: #f1c40f;
+        border-color: #f1c40f;
+        color: #333;
+    }
+
+    .btn-danger.btn-sm {
+        background-color: #e74c3c;
+        border-color: #e74c3c;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .btn-sm:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+
+    .hot-deal-banner {
+        position: absolute;
+        top: 15px;
+        left: -35px;
+        background-color: #ff3d3d;
+        color: white;
+        padding: 5px 10px;
+        font-size: 0.9em;
+        font-weight: bold;
+        transform: rotate(-45deg);
+        width: 150px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        z-index: 10;
+        animation: pulseHotDeal 1.5s infinite;
+    }
+
+        .hot-deal-banner::before, .hot-deal-banner::after {
+            content: "";
+            position: absolute;
+            border-style: solid;
+        }
+
+        .hot-deal-banner::before {
+            bottom: -5px;
+            left: 0;
+            border-width: 0 0 5px 5px;
+            border-color: transparent transparent #c00 transparent;
+        }
+
+        .hot-deal-banner::after {
+            bottom: -5px;
+            right: 0;
+            border-width: 0 5px 5px 0;
+            border-color: transparent #c00 transparent transparent;
+        }
+
+    .pagination .page-item .page-link {
+        background-color: transparent;
+        border: 1px solid #e94560;
+        color: #e94560;
+        margin: 0 3px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+
+        .pagination .page-item .page-link:hover {
+            background-color: #e94560;
+            color: #fff;
+            box-shadow: 0 0 10px #e94560;
+        }
+
+    .pagination .page-item.active .page-link {
+        background-color: #e94560;
+        color: #fff;
+        border-color: #e94560;
+        box-shadow: 0 0 15px #e94560;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .sort-links a {
+        color: #1abc9c;
+        text-decoration: none;
+        margin: 0 10px;
+        font-weight: bold;
+        transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+
+        .sort-links a:hover {
+            color: #2ecc71;
+            text-shadow: 0 0 5px #2ecc71;
+        }
+
+    .sort-links strong {
+        color: #f1c40f;
+    }
+
+    .card-buttons .btn {
+        margin-right: 5px;
+    }
+
+        .card-buttons .btn:last-child {
+            margin-right: 0;
+        }
+
+    /* CORRECTED KEYFRAMES DEFINITIONS */
+    @@keyframes pulseHotDeal { /* Added @@ */
+        0% {
+            transform: rotate(-45deg) scale(1);
+        }
+
+        50% {
+            transform: rotate(-45deg) scale(1.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4), 0 0 15px #ff3d3d;
+        }
+
+        100% {
+            transform: rotate(-45deg) scale(1);
+        }
+    }
+
+    @@keyframes pulsateTitle { /* Added @@ */
+        0% {
+            text-shadow: 0 0 5px #e94560, 0 0 10px #e94560;
+        }
+
+        100% {
+            text-shadow: 0 0 10px #e94560, 0 0 20px #e94560, 0 0 30px #ff5777;
+        }
+    }
+
+    @@keyframes fadeInUp { /* Added @@ */
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeInDown { /* Added @@ */
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 
 <h1>@ViewData["Title"]</h1>
 
@@ -32,31 +330,38 @@
 </form>
 
 
-@if (Model.Players.Any())
+@if (Model.Players != null && Model.Players.Any())
 {
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         @foreach (var player in Model.Players)
         {
-            <div class="col">
+            playerRenderIndex++;
+            bool isHotDeal = (random.Next(0, 4) == 0);
+
+            <div class="col player-card-column" style="animation-delay: @(playerRenderIndex * 0.08)s;">
                 <div class="card h-100 shadow-sm">
+                    @if (isHotDeal)
+                    {
+                        <div class="hot-deal-banner">HOT DEAL!</div>
+                    }
                     @if (!string.IsNullOrEmpty(player.ImageUrl))
                     {
-                        <img src="@player.ImageUrl" class="card-img-top" alt="@player.GamerTag" style="height: 200px; object-fit: cover;">
+                        <img src="@player.ImageUrl" class="card-img-top" alt="@player.GamerTag" style="height: 250px; object-fit: cover;">
                     }
                     else
                     {
-                        <img src="/images/default-player.png" class="card-img-top" alt="Default Player Image" style="height: 200px; object-fit: cover;">
+                        <img src="/images/default-player.png" class="card-img-top" alt="Default Player Image" style="height: 250px; object-fit: cover;">
                     }
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title">@Html.DisplayFor(modelItem => player.GamerTag)</h5>
                         <p class="card-text flex-grow-1">@Html.DisplayFor(modelItem => player.Description)</p>
                         <p class="card-text"><strong>Price:</strong> @player.PricePerHour.ToString("C") / hour</p>
-                        <p class="card-text"><strong>Rating:</strong> @player.Rating / 5</p>
+                        <p class="card-text"><strong>Rating:</strong> @player.Rating / 5 <i class="fas fa-star" style="color: #f1c40f;"></i></p>
                         @if (player.Team != null)
                         {
                             <p class="card-text"><small class="text-muted">Team: @player.Team.Name</small></p>
                         }
-                        <div class="mt-auto">
+                        <div class="mt-auto card-buttons">
                             <a asp-action="Details" asp-route-id="@player.Id" class="btn btn-info btn-sm">Details</a>
                             @if (ViewBag.IsAdmin == true)
                             {
@@ -72,7 +377,7 @@
 
     <nav aria-label="Player pagination" class="mt-4">
         <ul class="pagination justify-content-center">
-            @if (Model.HasPreviousPage)
+            @if (Model.PageNumber > 1)
             {
                 <li class="page-item">
                     <a class="page-link" asp-action="PlayerHire"
@@ -100,7 +405,7 @@
                 </li>
             }
 
-            @if (Model.HasNextPage)
+            @if (Model.PageNumber < Model.TotalPages)
             {
                 <li class="page-item">
                     <a class="page-link" asp-action="PlayerHire"
@@ -126,7 +431,7 @@ else
     </div>
 }
 
-<div class="mt-4">
+<div class="mt-4 text-center sort-links">
     <strong>Sort by:</strong>
     <a asp-action="PlayerHire" asp-route-sortOrder="@Model.GamerTagSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">GamerTag</a> |
     <a asp-action="PlayerHire" asp-route-sortOrder="@Model.PriceSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">Price</a> |

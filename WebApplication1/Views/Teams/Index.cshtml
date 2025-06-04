@@ -1,9 +1,342 @@
 ﻿@model WebApplication1.Models.TeamIndexViewModel
 @{
-    ViewData["Title"] = "All Teams";
+    ViewData["Title"] = "Available Teams";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var random = new Random();
+    int teamCardRenderIndex = 0;
 }
 
-<h1>@ViewData["Title"]</h1>
+<style>
+    body { /* Styles inherited from _Layout.cshtml should cover this if defined there */
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+    }
+
+    .page-header-title { /* For h1 */
+        color: #e94560;
+        text-align: center;
+        margin-bottom: 40px;
+        font-weight: bold;
+        text-shadow: 0 0 10px #e94560, 0 0 20px #e94560;
+        animation: pulsateTitle 3s infinite alternate;
+    }
+
+    .alert-success {
+        background-color: #1abc9c;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(26, 188, 156, 0.3);
+        animation: fadeInDown 0.5s ease-out forwards;
+    }
+
+    .btn-primary { /* General primary button for this page */
+        background-color: #e94560;
+        border-color: #e94560;
+        color: #fff;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(233, 69, 96, 0.3);
+        border-radius: 50px;
+        padding: 0.6rem 1.5rem;
+        font-weight: bold;
+    }
+
+        .btn-primary:hover {
+            background-color: #ff5777;
+            border-color: #ff5777;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 6px 15px rgba(233, 69, 96, 0.5);
+        }
+
+    .search-form .form-control {
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        border-radius: 6px 0 0 6px;
+    }
+
+        .search-form .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-form .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: #e94560;
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+            color: #fff;
+        }
+
+    .search-form .btn-outline-secondary {
+        color: #e94560;
+        border-color: #e94560;
+        border-radius: 0 6px 6px 0;
+    }
+
+        .search-form .btn-outline-secondary:hover {
+            background-color: #e94560;
+            color: #fff;
+        }
+
+    .search-form .btn-outline-info {
+        color: #1abc9c;
+        border-color: #1abc9c;
+        margin-left: 5px;
+        border-radius: 6px;
+    }
+
+        .search-form .btn-outline-info:hover {
+            background-color: #1abc9c;
+            color: #fff;
+        }
+
+    .search-form .input-group {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        border-radius: 6px;
+    }
+
+
+    .team-card-column {
+        animation: fadeInUpCard 0.6s ease-out forwards;
+        opacity: 0;
+    }
+
+    .team-card-item { /* Applied to .card */
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        overflow: hidden;
+        position: relative;
+        backdrop-filter: blur(5px);
+    }
+
+        .team-card-item:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px #1abc9c; /* Teal glow for teams */
+        }
+
+        .team-card-item .card-img-top {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.5s ease;
+            height: 220px; /* Consistent height */
+            object-fit: cover;
+        }
+
+        .team-card-item:hover .card-img-top {
+            transform: scale(1.12);
+        }
+
+        .team-card-item .card-title {
+            color: #1abc9c; /* Teal for team names */
+            font-weight: bold;
+            font-size: 1.4em;
+            margin-bottom: 0.75rem;
+        }
+
+        .team-card-item .card-text {
+            color: #c0c0c0;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+            .team-card-item .card-text strong {
+                color: #e0e0e0;
+            }
+
+            .team-card-item .card-text small.text-muted {
+                color: #9090a0 !important;
+            }
+
+        .team-card-item .card-body {
+            padding: 1.25rem;
+        }
+
+        .team-card-item .btn-info.btn-sm {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+
+        .team-card-item .btn-warning.btn-sm {
+            background-color: #f1c40f;
+            border-color: #f1c40f;
+            color: #333;
+        }
+
+        .team-card-item .btn-danger.btn-sm {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .team-card-item .btn-sm {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.85rem;
+            transition: all 0.2s ease-in-out;
+            border-radius: 20px;
+        }
+
+            .team-card-item .btn-sm:hover {
+                transform: scale(1.1);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+
+    .featured-team-banner { /* Similar to Hot Deal */
+        position: absolute;
+        top: 18px;
+        left: -38px;
+        background-color: #1abc9c;
+        color: white;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        transform: rotate(-45deg);
+        width: 160px;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        z-index: 10;
+        animation: pulseFeaturedBanner 1.8s infinite;
+        text-transform: uppercase;
+    }
+
+        .featured-team-banner::before, .featured-team-banner::after {
+            content: "";
+            position: absolute;
+            border-style: solid;
+        }
+
+        .featured-team-banner::before {
+            bottom: -5px;
+            left: 0;
+            border-width: 0 0 5px 5px;
+            border-color: transparent transparent #0f7864 transparent;
+        }
+
+        .featured-team-banner::after {
+            bottom: -5px;
+            right: 0;
+            border-width: 0 5px 5px 0;
+            border-color: transparent #0f7864 transparent transparent;
+        }
+
+
+    .pagination .page-item .page-link {
+        background-color: transparent;
+        border: 1px solid #e94560;
+        color: #e94560;
+        margin: 0 3px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+        padding: 0.5rem 0.9rem;
+    }
+
+        .pagination .page-item .page-link:hover {
+            background-color: #e94560;
+            color: #fff;
+            box-shadow: 0 0 10px #e94560;
+        }
+
+    .pagination .page-item.active .page-link {
+        background-color: #e94560;
+        color: #fff;
+        border-color: #e94560;
+        box-shadow: 0 0 15px #e94560;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .sort-links-teams {
+        text-align: center;
+        margin-top: 30px;
+    }
+        /* Wrapper for sort links */
+        .sort-links-teams strong {
+            color: #f1c40f;
+            margin-right: 5px;
+        }
+
+        .sort-links-teams a {
+            color: #1abc9c;
+            text-decoration: none;
+            margin: 0 8px;
+            font-weight: bold;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+            padding: 5px 0;
+        }
+
+            .sort-links-teams a:hover {
+                color: #2ecc71;
+                text-shadow: 0 0 5px #2ecc71;
+            }
+
+    .alert-info { /* No teams found */
+        background-color: rgba(26, 188, 156, 0.1);
+        border-color: var(--secondary-color);
+        color: var(--text-color);
+        text-align: center;
+        padding: 1.5rem;
+        border-radius: 8px;
+    }
+
+
+    @@keyframes pulsateTitle {
+        0% {
+            text-shadow: 0 0 5px #e94560, 0 0 10px #e94560;
+        }
+
+        100% {
+            text-shadow: 0 0 10px #e94560, 0 0 20px #e94560, 0 0 30px #ff5777;
+        }
+    }
+
+    @@keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeInUpCard { /* Renamed for clarity */
+        from {
+            opacity: 0;
+            transform: translateY(40px) scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @@keyframes pulseFeaturedBanner {
+        0% {
+            transform: rotate(-45deg) scale(1);
+            opacity: 0.9;
+        }
+
+        50% {
+            transform: rotate(-45deg) scale(1.1);
+            opacity: 1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4), 0 0 15px #1abc9c;
+        }
+
+        100% {
+            transform: rotate(-45deg) scale(1);
+            opacity: 0.9;
+        }
+    }
+</style>
+}
+
+<h1 class="page-header-title">@ViewData["Title"]</h1>
 
 @if (TempData["SuccessMessage"] != null)
 {
@@ -12,50 +345,61 @@
     </div>
 }
 
-<p>
-    <a asp-action="Create" class="btn btn-primary mb-3">Create New Team</a>
-</p>
+@if (User.IsInRole("Admin"))
+{
+    <p class="text-center mb-4">
+        <a asp-action="Create" class="btn btn-primary">Create New Team</a>
+    </p>
+}
 
-<form asp-action="Index" method="get" class="mb-3">
-    <div class="input-group">
+
+<form asp-action="Index" method="get" class="mb-4 search-form">
+    <div class="input-group input-group-lg">
         <input type="text" name="searchTerm" value="@Model.CurrentSearchTerm" class="form-control" placeholder="Search by Team Name or Description..." />
         <input type="hidden" name="sortOrder" value="@Model.CurrentSortOrder" />
-        <button type="submit" class="btn btn-outline-secondary">Search</button>
+        <button type="submit" class="btn btn-outline-secondary">Search <i class="fas fa-search"></i></button>
         @if (!string.IsNullOrEmpty(Model.CurrentSearchTerm))
         {
-            <a asp-action="Index" asp-route-sortOrder="@Model.CurrentSortOrder" class="btn btn-outline-info">Clear Search</a>
+            <a asp-action="Index" asp-route-sortOrder="@Model.CurrentSortOrder" class="btn btn-outline-info">Clear</a>
         }
     </div>
 </form>
 
-@if (Model.Teams.Any())
+@if (Model.Teams != null && Model.Teams.Any())
 {
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         @foreach (var team in Model.Teams)
         {
-            <div class="col">
-                <div class="card h-100 shadow-sm">
+            teamCardRenderIndex++;
+            bool isFeatured = (random.Next(0, 5) == 0);
+
+            <div class="col team-card-column" style="animation-delay: @(teamCardRenderIndex * 0.08)s;">
+                <div class="card team-card-item h-100 shadow-sm">
+                    @if (isFeatured)
+                    {
+                        <div class="featured-team-banner">FEATURED!</div>
+                    }
                     @if (!string.IsNullOrEmpty(team.ImageUrl))
                     {
-                        <img src="@team.ImageUrl" class="card-img-top" alt="@team.Name" style="height: 200px; object-fit: cover;">
+                        <img src="@team.ImageUrl" class="card-img-top" alt="@team.Name">
                     }
                     else
                     {
-                        <img src="/images/default-team.png" class="card-img-top" alt="Default Team Image" style="height: 200px; object-fit: cover;">
+                        <img src="/images/default-team.png" class="card-img-top" alt="Default Team Image">
                     }
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title">@Html.DisplayFor(modelItem => team.Name)</h5>
-                        <p class="card-text flex-grow-1">@Html.DisplayFor(modelItem => team.Description)</p>
+                        <p class="card-text flex-grow-1">@(!string.IsNullOrEmpty(team.Description) && team.Description.Length > 100 ? team.Description.Substring(0, 100) + "..." : team.Description)</p>
                         <p class="card-text"><strong>Price:</strong> @team.PricePerHour.ToString("C") / hour</p>
-                        <p class="card-text"><strong>Rating:</strong> @team.Rating / 5</p>
+                        <p class="card-text"><strong>Rating:</strong> @team.Rating / 5 <i class="fas fa-star" style="color:#f1c40f;"></i></p>
                         <p class="card-text"><small class="text-muted">Created: @team.DateCreated.ToString("yyyy-MM-dd")</small></p>
                         <p class="card-text"><small class="text-muted">Players: @(team.Players != null ? team.Players.Count : 0)</small></p>
-                        <div class="mt-auto">
+                        <div class="mt-auto text-center">
                             <a asp-action="Details" asp-route-id="@team.Id" class="btn btn-info btn-sm">Details</a>
                             @if (User.IsInRole("Admin"))
                             {
-                                <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-warning btn-sm disabled">Edit (NYI)</a>
-                                <a asp-action="Delete" asp-route-id="@team.Id" class="btn btn-danger btn-sm disabled">Delete (NYI)</a>
+                                <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-warning btn-sm ms-1">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@team.Id" class="btn btn-danger btn-sm ms-1">Delete</a>
                             }
                         </div>
                     </div>
@@ -66,7 +410,7 @@
 
     <nav aria-label="Team pagination" class="mt-4">
         <ul class="pagination justify-content-center">
-            @if (Model.HasPreviousPage)
+            @if (Model.PageNumber > 1) /* Changed from HasPreviousPage for consistency */
             {
                 <li class="page-item">
                     <a class="page-link" asp-action="Index"
@@ -94,7 +438,7 @@
                 </li>
             }
 
-            @if (Model.HasNextPage)
+            @if (Model.PageNumber < Model.TotalPages) /* Changed from HasNextPage for consistency */
             {
                 <li class="page-item">
                     <a class="page-link" asp-action="Index"
@@ -120,7 +464,7 @@ else
     </div>
 }
 
-<div class="mt-4">
+<div class="mt-4 sort-links-teams">
     <strong>Sort by:</strong>
     <a asp-action="Index" asp-route-sortOrder="@Model.NameSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">Name</a> |
     <a asp-action="Index" asp-route-sortOrder="@Model.PriceSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">Price</a> |

@@ -82,7 +82,7 @@ namespace WebApplication1.Controllers
             {
                 returnUrl = Url.Content("~/"); 
             }
-
+           
             if (ModelState.IsValid)
             {
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
@@ -96,8 +96,9 @@ namespace WebApplication1.Controllers
                     var user = await _userManager.FindByNameAsync(model.Username);
                     if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                     {
-                        HttpContext.Session.SetString("IsAdmin", "true"); 
-                                                                        
+                        HttpContext.Session.SetString("IsAdmin", "true");
+                        HttpContext.Session.SetInt32("Funds", (int)Math.Floor(user.Balance));
+
                     }
                     else
                     {
