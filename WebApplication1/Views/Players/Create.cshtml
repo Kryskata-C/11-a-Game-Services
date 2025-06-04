@@ -84,6 +84,76 @@
             color: #fff;
         }
 
+    .review-sub-form {
+        border-left: 3px solid #00ff91; /* Accent color */
+        background-color: #202020; /* Slightly darker than main form background */
+        animation: fadeInUp 0.5s ease-out forwards;
+        opacity: 0;
+        transform: translateY(10px);
+        position: relative; /* For potential absolute positioned elements inside */
+    }
+
+        .review-sub-form hr {
+            border-color: rgba(0, 255, 144, 0.2) !important;
+        }
+
+    .remove-review-button {
+        /* Style as needed, e.g., position top-right */
+        /* background-color: #ff4d4d;
+            border-color: #ff4d4d; */
+    }
+
+    @@keyframes fadeOutDown {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+    }
+
+    /* Adjust nth-child animation delays if "Initial Reviews" section changes the order significantly */
+    /* Assuming "Initial Reviews" is added as the 6th .form-group (after Rating) */
+    .form-group:nth-child(1) { /* Validation Summary */
+        animation-delay: 0.05s;
+    }
+
+    .form-group:nth-child(2) { /* GamerTag */
+        animation-delay: 0.1s;
+    }
+
+    .form-group:nth-child(3) { /* Description */
+        animation-delay: 0.15s;
+    }
+
+    .form-group:nth-child(4) { /* PricePerHour */
+        animation-delay: 0.2s;
+    }
+
+    .form-group:nth-child(5) { /* Rating */
+        animation-delay: 0.25s;
+    }
+
+    .form-group:nth-child(6) { /* InitialReviews section */
+        animation-delay: 0.3s;
+    }
+    /* NEW */
+    .form-group:nth-child(7) { /* ImageFile */
+        animation-delay: 0.35s;
+    }
+    /* SHIFTED */
+    .form-group:nth-child(8) { /* Submit button */
+        animation-delay: 0.40s;
+    }
+    /* SHIFTED */
+    .form-group:nth-child(9) { /* Back link (if still a .form-group) */
+        animation-delay: 0.45s;
+    }
+    /* SHIFTED */
+
     label.control-label {
         color: #00ff91;
         font-weight: bold;
@@ -188,11 +258,40 @@
                     <span asp-validation-for="Rating" class="text-danger"></span>
                 </div>
 
-                @* === The old "Reviews" string field was here and has been removed === *@
-                @* === To add functionality for InitialReviews (List<ReviewSubViewModel>),
-                you would add HTML and JavaScript here to manage a list of review forms. === *@
+                <div class="form-group">
+                    <h4 style="color: #00ff91; margin-bottom: 15px;">Initial Reviews</h4>
+                    <div id="initialReviewsContainer">
+                        @if (Model.InitialReviews != null)
+                        {
+                            for (int i = 0; i < Model.InitialReviews.Count; i++)
+                            {
+                                <div class="review-sub-form mb-3 p-3 border rounded">
+                                    <h5>Review @(i + 1)</h5>
+                                    <input type="hidden" name="InitialReviews.Index" value="@i" />
 
-
+                                    <div class="form-group mb-2">
+                                        <label asp-for="InitialReviews[i].ReviewerName" class="control-label"></label>
+                                        <input asp-for="InitialReviews[i].ReviewerName" class="form-control" />
+                                        <span asp-validation-for="InitialReviews[i].ReviewerName" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label asp-for="InitialReviews[i].CommentText" class="control-label"></label>
+                                        <textarea asp-for="InitialReviews[i].CommentText" class="form-control" rows="2"></textarea>
+                                        <span asp-validation-for="InitialReviews[i].CommentText" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label asp-for="InitialReviews[i].StarRating" class="control-label"></label>
+                                        <input asp-for="InitialReviews[i].StarRating" type="number" class="form-control" min="1" max="5" />
+                                        <span asp-validation-for="InitialReviews[i].StarRating" class="text-danger"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-danger remove-review-button mt-1">Remove Review</button>
+                                    <hr style="border-color: rgba(0, 255, 144, 0.1);" />
+                                </div>
+                            }
+                        }
+                    </div>
+                    <button type="button" id="addReviewButton" class="btn btn-sm btn-success mt-2" style="background: linear-gradient(45deg, #00dd80, #00ee99); border:none; color: #111; font-weight:bold;">+ Add Initial Review</button>
+                </div>
                 <div class="form-group">
                     <label asp-for="ImageFile" class="control-label"></label>
                     <input asp-for="ImageFile" type="file" class="form-control" />
@@ -214,5 +313,84 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    @* Scripts for dynamically adding/removing review forms would go here *@
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addReviewButton = document.getElementById('addReviewButton');
+            const reviewsContainer = document.getElementById('initialReviewsContainer');
+            let reviewIndexOffset = @(Model.InitialReviews?.Count ?? 0); // Start index after any server-rendered reviews
+
+            function addReviewForm(index) {
+                const actualIndex = index; // Use a consistent index for naming
+                const reviewFormHtml = `
+                        <div class="review-sub-form mb-3 p-3 border rounded">
+                            <h5>Review ${actualIndex + 1}</h5>
+                            <input type="hidden" name="InitialReviews.Index" value="${actualIndex}" />
+
+                            <div class="form-group mb-2">
+                                <label class="control-label" for="InitialReviews_${actualIndex}__ReviewerName">Reviewer Name</label>
+                                <input type="text" name="InitialReviews[${actualIndex}].ReviewerName" id="InitialReviews_${actualIndex}__ReviewerName" class="form-control" data-val="true" data-val-required="Reviewer name cannot be empty." data-val-length-max="100" data-val-length="Reviewer name must be a string with a maximum length of 100." />
+                                <span class="text-danger field-validation-valid" data-valmsg-for="InitialReviews[${actualIndex}].ReviewerName" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="control-label" for="InitialReviews_${actualIndex}__CommentText">Comment</label>
+                                <textarea name="InitialReviews[${actualIndex}].CommentText" id="InitialReviews_${actualIndex}__CommentText" class="form-control" rows="2" data-val="true" data-val-required="Comment cannot be empty." data-val-length-min="5" data-val-length-max="1000" data-val-length="Comment must be between 5 and 1000 characters."></textarea>
+                                <span class="text-danger field-validation-valid" data-valmsg-for="InitialReviews[${actualIndex}].CommentText" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="control-label" for="InitialReviews_${actualIndex}__StarRating">Star Rating (1-5)</label>
+                                <input type="number" name="InitialReviews[${actualIndex}].StarRating" id="InitialReviews_${actualIndex}__StarRating" class="form-control" min="1" max="5" value="5" data-val="true" data-val-range="Rating must be between 1 and 5 stars." data-val-range-min="1" data-val-range-max="5" data-val-required="The StarRating field is required." />
+                                <span class="text-danger field-validation-valid" data-valmsg-for="InitialReviews[${actualIndex}].StarRating" data-valmsg-replace="true"></span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-danger remove-review-button mt-1">Remove Review</button>
+                            <hr style="border-color: rgba(0, 255, 144, 0.1);"/>
+                        </div>`;
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = reviewFormHtml;
+                const newReviewForm = tempDiv.firstElementChild; // Get the actual .review-sub-form div
+
+                reviewsContainer.appendChild(newReviewForm);
+
+                // Apply animation after a short delay
+                setTimeout(() => {
+                    newReviewForm.style.opacity = '1';
+                    newReviewForm.style.transform = 'translateY(0)';
+                }, 50);
+
+                // Re-parse the form for unobtrusive validation
+                var form = $(newReviewForm).closest('form');
+                form.removeData('validator');
+                form.removeData('unobtrusiveValidation');
+                $.validator.unobtrusive.parse(form);
+            }
+
+            addReviewButton.addEventListener('click', function () {
+                // Calculate the next index based on current live forms in the container
+                // This is more robust if forms are removed from the middle, though ASP.NET Core MVC binding can handle gaps if InitialReviews.Index is used.
+                // For simplicity in adding, we find the highest current index and increment.
+                let currentMaxIndex = -1;
+                reviewsContainer.querySelectorAll('input[name="InitialReviews.Index"]').forEach(input => {
+                    const val = parseInt(input.value);
+                    if (val > currentMaxIndex) {
+                        currentMaxIndex = val;
+                    }
+                });
+                addReviewForm(currentMaxIndex + 1);
+            });
+
+            reviewsContainer.addEventListener('click', function (event) {
+                if (event.target && event.target.classList.contains('remove-review-button')) {
+                    const reviewFormToRemove = event.target.closest('.review-sub-form');
+                    if (reviewFormToRemove) {
+                        reviewFormToRemove.style.animation = 'fadeOutDown 0.3s ease-out forwards';
+                        setTimeout(() => {
+                            reviewFormToRemove.remove();
+                            // Re-parsing validation might be good here too if complex dependencies exist,
+                            // but for removal, usually not as critical as addition.
+                        }, 300);
+                    }
+                }
+            });
+        });
+    </script>
 }

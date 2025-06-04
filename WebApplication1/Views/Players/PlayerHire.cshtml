@@ -34,7 +34,8 @@
                 <button type="submit" class="hire-btn">Hire</button>
             </form>
 
-            <a href="@Url.Action("PlayerInfo", "Home", new { playerName = player.GamerTag })" class="info-btn" style="display:inline-block;">Info</a>
+            <a asp-controller="Players" asp-action="Details" asp-route-id="@player.Id" class="info-btn" style="display:inline-block;">Info</a>
+
 
             @if (isAdmin)
             {

@@ -1,32 +1,34 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation; // Required for ValidateNever
 
-namespace WebApplication1.Models 
+namespace WebApplication1.Models
 {
-    public class ReviewSubViewModel
-    {
-        [Required(ErrorMessage = "Reviewer name is required.")]
-        [StringLength(100)]
-        public string ReviewerName { get; set; }
-
-        [Required(ErrorMessage = "A comment is required.")]
-        [StringLength(1000)]
-        public string CommentText { get; set; }
-
-        [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
-        public int StarRating { get; set; }
-    }
-
     public class PlayerCreateViewModel
     {
-        // ... other properties ...
-        public string GamerTag { get; set; } //
-        public string Description { get; set; } //
-        public decimal PricePerHour { get; set; } //
-        public double Rating { get; set; } //
-                                           // Remove: public string Reviews { get; set; }
-        public IFormFile ImageFile { get; set; } //
+        [Required]
+        [StringLength(100, MinimumLength = 3)]
+        public string GamerTag { get; set; }
 
-        public List<ReviewSubViewModel> InitialReviews { get; set; } = new List<ReviewSubViewModel>();
+        [StringLength(1000)]
+        public string? Description { get; set; }
+
+        [Required]
+        [Range(0.01, 10000.00)]
+        [DataType(DataType.Currency)]
+        public decimal PricePerHour { get; set; }
+
+        [Range(0.0, 5.0)] // This is the player's overall self-assigned/initial rating
+        public double Rating { get; set; } = 0.0;
+
+        [Display(Name = "Player Image")]
+        [ValidateNever] // Allows for optional image upload or different validation logic
+        public IFormFile? ImageFile { get; set; }
+
+        // This is the new property for initial reviews
+        [Display(Name = "Initial Reviews")]
+        [ValidateNever] // We'll validate individual review items if submitted
+        public List<AddReviewViewModel> InitialReviews { get; set; } = new List<AddReviewViewModel>();
     }
 }
