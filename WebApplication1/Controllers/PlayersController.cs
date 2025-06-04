@@ -127,7 +127,47 @@ public class PlayersController : Controller
         }
         return View(viewModel);
     }
+    [HttpGet] 
+    public async Task<IActionResult> GetPlayerReviewsApi(int playerId, int page = 1)
+    {
+        var player = await _context.Players
+                                   .Include(p => p.PlayerReviews) 
+                                   .FirstOrDefaultAsync(p => p.Id == playerId);
 
+        if (player == null)
+        {
+            return NotFound(new { message = "Player not found." });
+        }
+
+        int pageSize = 5; 
+        var allReviews = player.PlayerReviews != null
+            ? player.PlayerReviews.OrderByDescending(r => r.ReviewDate).ToList()
+            : new List<Review>();
+
+        var reviewsForPage = allReviews.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        var totalReviews = allReviews.Count;
+        var totalPages = (int)Math.Ceiling(totalReviews / (double)pageSize);
+        if (totalPages == 0) totalPages = 1;
+
+        var reviewsDto = reviewsForPage.Select(r => new
+        {
+            r.Id,
+            r.ReviewerName,
+            r.CommentText,
+            ReviewDate = r.ReviewDate.ToString("yyyy-MM-dd HH:mm"), 
+            r.StarRating
+        }).ToList();
+
+        return Json(new
+        {
+            PlayerId = playerId,
+            Reviews = reviewsDto,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            PageSize = pageSize,
+            TotalReviews = totalReviews
+        });
+    }
     // GET: Players/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
@@ -203,7 +243,6 @@ public class PlayersController : Controller
         return View(player);
     }
 
-    // POST: Players/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
@@ -213,10 +252,9 @@ public class PlayersController : Controller
         return RedirectToAction(nameof(PlayerHire));
     }
 
-    // Correct Details action with pagination for Reviews
-    public async Task<IActionResult> Details(int? id, int page = 1)
+    public async Task<IActionResult> Details(int? id) 
     {
-        ViewBag.IsAdmin = IsAdminUser();
+        ViewBag.IsAdmin = IsAdminUser(); 
         if (id == null)
         {
             return NotFound();
@@ -224,7 +262,6 @@ public class PlayersController : Controller
 
         var player = await _context.Players
             .Include(p => p.Team)
-            .Include(p => p.PlayerReviews) // Use the correct collection name: PlayerReviews
             .FirstOrDefaultAsync(p => p.Id == id.Value);
 
         if (player == null)
@@ -232,18 +269,9 @@ public class PlayersController : Controller
             return NotFound();
         }
 
-        int pageSize = 5;
-        var allReviews = player.PlayerReviews != null ? player.PlayerReviews.OrderByDescending(r => r.ReviewDate).ToList() : new List<Review>();
-        var reviewsForPage = allReviews.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-        var totalReviews = allReviews.Count;
-        var totalPages = (int)Math.Ceiling(totalReviews / (double)pageSize);
-
         var viewModel = new PlayerDetailViewModel
         {
-            Player = player,
-            ReviewsOnCurrentPage = reviewsForPage,
-            CurrentPage = page,
-            TotalPages = totalPages > 0 ? totalPages : 1
+            Player = player
         };
 
         return View(viewModel);
