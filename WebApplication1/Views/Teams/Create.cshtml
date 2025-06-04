@@ -129,17 +129,14 @@
 
         <hr style="border-color: rgba(0, 255, 144, 0.2);" />
 
-        @* --- Player Selection Section --- *@
         <div class="form-group mb-3">
             <h4 style="color: #00ff91; margin-bottom: 15px;">Team Members</h4>
             <div id="teamPlayersContainer">
-                @* Player selection dropdowns will be appended here by JavaScript *@
-                @* Render existing selected players if form reloads on error *@
-                @if (Model.SelectedPlayerIds != null)
+                @if (Model.SelectedPlayerIds != null && Model.SelectedPlayerIds.Any())
                 {
                     for (int i = 0; i < Model.SelectedPlayerIds.Count; i++)
                     {
-                        <div class="player-slot mb-2" style="display: flex; align-items: center;">
+                        <div class="player-slot mb-2" style="display: flex; align-items: center;" id="player-slot-server-@(i)">
                             <label class="control-label me-2" style="white-space:nowrap;">Player @(i + 1):</label>
                             <select name="SelectedPlayerIds" class="form-control form-select me-2" style="flex-grow:1;">
                                 <option value="">-- Select a Player --</option>
@@ -149,7 +146,7 @@
                                     <option value="@playerItem.Value" selected="@isSelected">@playerItem.Text</option>
                                 }
                             </select>
-                            <button type="button" class="btn btn-sm btn-danger remove-player-button">X</button>
+                            <button type="button" class="btn btn-sm btn-danger remove-player-button" onclick="document.getElementById('player-slot-server-@(i)').remove();">X</button>
                         </div>
                     }
                 }
@@ -159,19 +156,17 @@
 
         <hr style="border-color: rgba(0, 255, 144, 0.2);" />
 
-        @* --- Initial Team Reviews Section (similar to Player creation) --- *@
         <div class="form-group mb-3">
             <h4 style="color: #00ff91; margin-bottom: 15px;">Initial Team Reviews</h4>
             <div id="initialTeamReviewsContainer">
-                @* Review forms will be dynamically added here *@
                 @if (Model.InitialTeamReviews != null)
                 {
                     for (int i = 0; i < Model.InitialTeamReviews.Count; i++)
                     {
-                        <div class="review-sub-form">
+                        <div class="review-sub-form" id="review-sub-form-server-@(i)">
                             <div class="player-slot-header">
                                 <h5>Review @(i + 1)</h5>
-                                <button type="button" class="btn btn-sm btn-danger remove-review-button">X</button>
+                                <button type="button" class="btn btn-sm btn-danger remove-review-button" onclick="document.getElementById('review-sub-form-server-@(i)').remove()">X</button>
                             </div>
                             <input type="hidden" name="InitialTeamReviews.Index" value="@i" />
                             <div class="form-group mb-2">
@@ -200,7 +195,6 @@
             <input type="submit" value="Create Team" class="btn-submit-team" />
         </div>
         <div class="form-group text-center mt-3">
-            @* Update this link as needed, e.g., to a team list page *@
             <a asp-action="Index" asp-controller="Home" class="back-link" style="color:#00ff91;">Back to Home</a>
         </div>
     </form>
@@ -212,15 +206,16 @@
     }
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // --- Dynamic Player Selection ---
             const addPlayerButton = document.getElementById('addPlayerButton');
             const playersContainer = document.getElementById('teamPlayersContainer');
-            const availablePlayersJson = @Html.Raw(Json.Serialize(Model.AvailablePlayers ?? new List<SelectListItem>()));
-            let playerSlotCounter = playersContainer.querySelectorAll('.player-slot').length;
+            const availablePlayersJson = @Html.Raw(Json.Serialize(Model.AvailablePlayers ?? new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>()));
+            let playerSlotCounter = playersContainer.querySelectorAll('.player-slot[id^="player-slot-server-"]').length;
 
             addPlayerButton.addEventListener('click', function () {
-                playerSlotCounter++;
-                const playerDivId = `player-slot-${playerSlotCounter}`;
+                const currentDynamicSlots = playersContainer.querySelectorAll('.player-slot[id^="player-slot-dynamic-"]').length;
+                const dynamicPlayerLabelNumber = playerSlotCounter + currentDynamicSlots + 1;
+                const playerDivId = `player-slot-dynamic-${currentDynamicSlots}`;
+
                 const playerDiv = document.createElement('div');
                 playerDiv.classList.add('player-slot', 'mb-2');
                 playerDiv.id = playerDivId;
@@ -230,10 +225,10 @@
                 const selectLabel = document.createElement('label');
                 selectLabel.classList.add('control-label', 'me-2');
                 selectLabel.style.whiteSpace = 'nowrap';
-                selectLabel.textContent = `Player ${playerSlotCounter}:`;
+                selectLabel.textContent = `Player ${dynamicPlayerLabelNumber}:`;
 
                 const select = document.createElement('select');
-                select.name = `SelectedPlayerIds`; // All select elements share this name
+                select.name = `SelectedPlayerIds`;
                 select.classList.add('form-control', 'form-select', 'me-2');
                 select.style.flexGrow = '1';
 
@@ -242,21 +237,19 @@
                 defaultOption.text = "-- Select a Player --";
                 select.appendChild(defaultOption);
 
-                availablePlayersJson.forEach(player => {
-                    const option = document.createElement('option');
-                    option.value = player.Value;
-                    option.text = player.Text;
-                    select.appendChild(option);
-                });
+                if (availablePlayersJson && availablePlayersJson.length > 0) {
+                    availablePlayersJson.forEach(player => {
+                        const option = document.createElement('option');
+                        option.value = player.value;
+                        option.text = player.text;
+                        select.appendChild(option);
+                    });
+                }
 
                 const removeButton = document.createElement('button');
                 removeButton.type = 'button';
                 removeButton.textContent = 'X';
-                removeButton.classList.add('btn', 'btn-sm', 'btn-danger', 'remove-player-button');
-                removeButton.onclick = function () {
-                    document.getElementById(playerDivId).remove();
-                    // Renumber labels if needed, though not critical for functionality
-                };
+                removeButton.classList.add('btn', 'btn-sm', 'btn-danger', 'remove-player-button-dynamic');
 
                 playerDiv.appendChild(selectLabel);
                 playerDiv.appendChild(select);
@@ -264,25 +257,27 @@
                 playersContainer.appendChild(playerDiv);
             });
 
-            // Event delegation for removing dynamically added player slots
             playersContainer.addEventListener('click', function (event) {
-                if (event.target && event.target.classList.contains('remove-player-button')) {
+                if (event.target && (event.target.classList.contains('remove-player-button') || event.target.classList.contains('remove-player-button-dynamic'))) {
                     event.target.closest('.player-slot').remove();
                 }
             });
 
-            // --- Dynamic Team Review Addition (Similar to Player Review) ---
             const addTeamReviewButton = document.getElementById('addTeamReviewButton');
             const teamReviewsContainer = document.getElementById('initialTeamReviewsContainer');
-            let teamReviewIndex = teamReviewsContainer.querySelectorAll('.review-sub-form').length;
+            let teamReviewBaseIndex = teamReviewsContainer.querySelectorAll('.review-sub-form[id^="review-sub-form-server-"]').length;
 
             addTeamReviewButton.addEventListener('click', function () {
-                const actualReviewIndex = teamReviewIndex; // Use for unique IDs if needed
+                const currentDynamicReviewSlots = teamReviewsContainer.querySelectorAll('.review-sub-form[id^="review-sub-form-dynamic-"]').length;
+                const actualReviewIndex = teamReviewBaseIndex + currentDynamicReviewSlots;
+                const dynamicReviewLabelNumber = actualReviewIndex + 1;
+                const reviewDivId = `review-sub-form-dynamic-${currentDynamicReviewSlots}`;
+
                 const reviewFormHtml = `
-                        <div class="review-sub-form">
+                        <div class="review-sub-form" id="${reviewDivId}">
                              <div class="player-slot-header">
-                                <h5>Review ${actualReviewIndex + 1}</h5>
-                                <button type="button" class="btn btn-sm btn-danger remove-review-button">X</button>
+                                <h5>Review ${dynamicReviewLabelNumber}</h5>
+                                <button type="button" class="btn btn-sm btn-danger remove-review-button-dynamic-review">X</button>
                             </div>
                             <input type="hidden" name="InitialTeamReviews.Index" value="${actualReviewIndex}" />
                             <div class="form-group mb-2">
@@ -308,15 +303,14 @@
                 teamReviewsContainer.appendChild(newReviewForm);
 
                 var form = $(newReviewForm).closest("form");
-                form.removeData("validator");
-                form.removeData("unobtrusiveValidation");
-                $.validator.unobtrusive.parse(form);
-
-                teamReviewIndex++;
+                if (form.length > 0 && typeof $.validator !== 'undefined' && typeof $.validator.unobtrusive !== 'undefined') {
+                    form.removeData("validator").removeData("unobtrusiveValidation");
+                    $.validator.unobtrusive.parse(form);
+                }
             });
 
             teamReviewsContainer.addEventListener('click', function (event) {
-                if (event.target && event.target.classList.contains('remove-review-button')) {
+                if (event.target && (event.target.classList.contains('remove-review-button') || event.target.classList.contains('remove-review-button-dynamic-review'))) {
                     event.target.closest('.review-sub-form').remove();
                 }
             });

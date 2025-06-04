@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation; 
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace WebApplication1.Models
 {
@@ -22,7 +22,7 @@ namespace WebApplication1.Models
         public decimal PricePerHour { get; set; }
 
         [Display(Name = "Team Logo/Image")]
-        [ValidateNever] 
+        [ValidateNever]
         public IFormFile? TeamImageFile { get; set; }
 
         [Display(Name = "Team Members")]
@@ -32,7 +32,7 @@ namespace WebApplication1.Models
         public List<SelectListItem> AvailablePlayers { get; set; } = new List<SelectListItem>();
 
         [Display(Name = "Initial Team Reviews")]
-        [ValidateNever] 
+        [ValidateNever]
         public List<AddReviewViewModel> InitialTeamReviews { get; set; } = new List<AddReviewViewModel>();
     }
 }

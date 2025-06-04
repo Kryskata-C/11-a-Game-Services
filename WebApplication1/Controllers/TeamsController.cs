@@ -4,18 +4,19 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using WebApplication1.Data; 
+using WebApplication1.Data;
 using WebApplication1.Data.Entities;
 using WebApplication1.Models;
-using Microsoft.AspNetCore.Hosting; 
+using Microsoft.AspNetCore.Hosting;
 using System.IO;
-using Microsoft.AspNetCore.Authorization; 
+using Microsoft.AspNetCore.Authorization;
+using System;
 
-[Authorize] 
+[Authorize]
 public class TeamsController : Controller
 {
     private readonly ApplicationDbContext _context;
-    private readonly IWebHostEnvironment _webHostEnvironment; 
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
     public TeamsController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
     {
@@ -40,8 +41,6 @@ public class TeamsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TeamCreateViewModel model)
     {
-
-
         if (ModelState.IsValid)
         {
             var team = new Team
@@ -49,7 +48,8 @@ public class TeamsController : Controller
                 Name = model.Name,
                 Description = model.Description,
                 PricePerHour = model.PricePerHour,
-                Rating = 0 
+                Rating = 0, // Team rating will be 0 initially or calculated based on reviews later
+                DateCreated = DateTime.UtcNow
             };
 
             if (model.TeamImageFile != null && model.TeamImageFile.Length > 0)
@@ -68,7 +68,7 @@ public class TeamsController : Controller
                     }
                     team.ImageUrl = "/images/teamlogos/" + uniqueFileName;
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     ModelState.AddModelError(nameof(model.TeamImageFile), $"File upload failed: {ex.Message}");
                     model.AvailablePlayers = await GetAvailablePlayersAsync(model.SelectedPlayerIds);
@@ -77,22 +77,20 @@ public class TeamsController : Controller
             }
             else
             {
-                team.ImageUrl = "/images/default-team.png"; 
+                team.ImageUrl = "/images/default-team.png";
             }
 
-
             _context.Teams.Add(team);
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
 
             if (model.SelectedPlayerIds != null && model.SelectedPlayerIds.Any())
             {
                 var playersToAssign = await _context.Players
-                                            .Where(p => model.SelectedPlayerIds.Contains(p.Id) && p.TeamId == null)
-                                            .ToListAsync();
-
+                                                .Where(p => model.SelectedPlayerIds.Contains(p.Id) && p.TeamId == null)
+                                                .ToListAsync();
                 foreach (var player in playersToAssign)
                 {
-                    player.TeamId = team.Id; 
+                    player.TeamId = team.Id;
                 }
             }
 
@@ -103,26 +101,21 @@ public class TeamsController : Controller
                 {
                     var review = new Review
                     {
-                        TeamId = team.Id, 
-                        PlayerId = null,  
+                        TeamId = team.Id,
+                        PlayerId = null,
                         ReviewerName = reviewModel.ReviewerName,
                         CommentText = reviewModel.CommentText,
                         StarRating = reviewModel.StarRating,
                         ReviewDate = DateTime.UtcNow,
-                        UserId = currentUserId 
+                        UserId = currentUserId
                     };
                     _context.Reviews.Add(review);
                 }
             }
-
-            await _context.SaveChangesAsync(); 
-
-
-
+            await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = $"Team '{team.Name}' created successfully!";
-            return RedirectToAction("Details", "Teams", new { id = team.Id }); 
+            return RedirectToAction("Details", "Teams", new { id = team.Id });
         }
-
         model.AvailablePlayers = await GetAvailablePlayersAsync(model.SelectedPlayerIds);
         return View(model);
     }
@@ -136,5 +129,32 @@ public class TeamsController : Controller
             .ToListAsync();
     }
 
- 
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var team = await _context.Teams
+            .Include(t => t.Players)
+            .Include(t => t.Reviews)
+                .ThenInclude(r => r.User)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (team == null)
+        {
+            return NotFound();
+        }
+        return View(team);
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        var teams = await _context.Teams
+                                .Include(t => t.Players)
+                                .OrderBy(t => t.Name)
+                                .ToListAsync();
+        return View(teams);
+    }
 }
