@@ -77,8 +77,9 @@
     <script>
         $(document).ready(function () {
             var playerId = @player.Id;
-            loadReviews(playerId, 1);
+            loadReviews(playerId, 1); // Load first page of reviews on document ready
 
+            // Event delegation for pagination buttons
             $('#reviewsPagination').on('click', 'button.page-link', function (e) {
                 e.preventDefault();
                 var page = $(this).data('page');
@@ -89,15 +90,15 @@
         });
 
         function loadReviews(playerId, page) {
-            $('#reviewsContainer').html('<p>Loading reviews...</p>'); 
-            $('#reviewsPagination').html(''); 
+            $('#reviewsContainer').html('<p>Loading reviews...</p>');
+            $('#reviewsPagination').html('');
 
             $.ajax({
-                url: '@Url.Action("GetPlayerReviewsApi", "Players")', 
+                url: '/api/ReviewsApi/GetReviewsForPlayer/' + playerId,
                 type: 'GET',
-                data: { playerId: playerId, page: page },
+                data: { page: page }, // CORRECTED: playerId removed from here, it's in the URL path
                 success: function (response) {
-                    $('#reviewsContainer').empty(); 
+                    $('#reviewsContainer').empty();
                     if (response.reviews && response.reviews.length > 0) {
                         var reviewsHtml = '<ul class="list-group">';
                         $.each(response.reviews, function (index, review) {
@@ -112,6 +113,7 @@
                         $('#reviewsContainer').html('<p>No reviews found for this player.</p>');
                     }
 
+                    // Render pagination
                     renderPagination(response.playerId, response.currentPage, response.totalPages);
                 },
                 error: function (xhr, status, error) {
@@ -123,22 +125,25 @@
 
         function renderPagination(playerId, currentPage, totalPages) {
             if (totalPages <= 1) {
-                $('#reviewsPagination').html(''); 
+                $('#reviewsPagination').html('');
                 return;
             }
 
             var paginationHtml = '<nav aria-label="Reviews navigation"><ul class="pagination">';
 
+            // Previous button
             paginationHtml += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">';
             paginationHtml += '<button class="page-link" data-page="' + (currentPage - 1) + '" ' + (currentPage === 1 ? 'disabled' : '') + '>Previous</button>';
             paginationHtml += '</li>';
 
+            // Page numbers (simplified here, could be more complex for many pages)
             for (let i = 1; i <= totalPages; i++) {
                 paginationHtml += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '">';
                 paginationHtml += '<button class="page-link" data-page="' + i + '">' + i + '</button>';
                 paginationHtml += '</li>';
             }
 
+            // Next button
             paginationHtml += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">';
             paginationHtml += '<button class="page-link" data-page="' + (currentPage + 1) + '" ' + (currentPage === totalPages ? 'disabled' : '') + '>Next</button>';
             paginationHtml += '</li>';

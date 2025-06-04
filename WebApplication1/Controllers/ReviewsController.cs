@@ -1,11 +1,11 @@
-﻿// File: WebApplication1/Controllers/ReviewsController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using WebApplication1.Models;    // CRUCIAL: For Review, AddReviewViewModel, ApplicationUser, Player
+using WebApplication1.Models;    
 using Microsoft.AspNetCore.Identity;
 using System.Linq;
-using System;                   // For DateTime
+using System;                  
+
 
 namespace WebApplication1.Controllers
 {
@@ -33,7 +33,7 @@ namespace WebApplication1.Controllers
 
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                var currentUser = await _userManager.GetUserAsync(User);
+                var currentUser = await _userManager.GetUserAsync(User); 
                 if (currentUser != null)
                 {
                     viewModel.ReviewerName = currentUser.UserName;
@@ -49,25 +49,44 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Create(AddReviewViewModel model)
         {
             var player = await _context.Players
-                                     .Include(p => p.PlayerReviews) // Make sure Player.cs uses PlayerReviews
+                                     .Include(p => p.PlayerReviews)
                                      .FirstOrDefaultAsync(p => p.Id == model.PlayerId);
             if (player == null)
             {
                 ModelState.AddModelError("", "Player not found. Unable to add review.");
             }
 
+            string currentUserId = null;
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser != null)
+                {
+                    currentUserId = currentUser.Id;
+                    if (string.IsNullOrWhiteSpace(model.ReviewerName))
+                    {
+                        model.ReviewerName = currentUser.UserName;
+                    }
+                }
+            }
+            if (string.IsNullOrWhiteSpace(model.ReviewerName) && ModelState.ContainsKey("ReviewerName"))
+            {
+            }
+
+
             if (ModelState.IsValid && player != null)
             {
-                var review = new WebApplication1.Models.Review
+                var review = new WebApplication1.Models.Review 
                 {
-                    PlayerId = model.PlayerId,         
-                    ReviewerName = model.ReviewerName,
-                    CommentText = model.CommentText,   
+                    PlayerId = model.PlayerId,
+                    ReviewerName = model.ReviewerName, 
+                    CommentText = model.CommentText,
                     StarRating = model.StarRating,
-                    ReviewDate = DateTime.UtcNow      
+                    ReviewDate = DateTime.UtcNow,
+                    UserId = currentUserId 
                 };
 
-                _context.Reviews.Add(review); 
+                _context.Reviews.Add(review);
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Review submitted successfully!";
@@ -80,7 +99,7 @@ namespace WebApplication1.Controllers
             }
             else
             {
-                ViewData["PlayerName"] = "Selected Player";
+                ViewData["PlayerName"] = "Selected Player"; 
             }
             return View(model);
         }
