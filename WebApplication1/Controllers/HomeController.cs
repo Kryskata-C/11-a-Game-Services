@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -35,7 +36,37 @@ namespace WebApplication1.Controllers
         {
             return View();
         }
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        [IgnoreAntiforgeryToken] 
+        public IActionResult Error(int? statusCode = null)
+        {
+            var viewModel = new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                Message = "An unexpected error occurred." 
+            };
 
+            if (statusCode.HasValue)
+            {
+                viewModel.StatusCode = statusCode.Value;
+                viewModel.OriginalPath = HttpContext.Features.Get<Microsoft.AspNetCore.Diagnostics.IStatusCodeReExecuteFeature>()?.OriginalPath;
+
+                if (statusCode == 404)
+                {
+                    viewModel.Message = "Sorry, the page you requested could not be found.";
+                }
+                else if (statusCode == 401)
+                {
+                    viewModel.Message = "Sorry, you are not authorized to access this page.";
+                }
+                else if (statusCode == 500)
+                {
+                    viewModel.Message = "An internal server error occurred. We are looking into it.";
+                }
+            }
+
+            return View(viewModel); 
+        }
         public IActionResult AboutDeveloper()
         {
             return View();
