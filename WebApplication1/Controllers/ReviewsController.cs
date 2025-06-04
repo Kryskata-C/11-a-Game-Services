@@ -155,7 +155,7 @@ namespace WebApplication1.Controllers
                     await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Review updated successfully!";
 
-\                    if (reviewToUpdate.PlayerId.HasValue)
+                    if (reviewToUpdate.PlayerId.HasValue)
                     {
                         return RedirectToAction("Details", "Players", new { id = reviewToUpdate.PlayerId });
                     }
@@ -163,7 +163,7 @@ namespace WebApplication1.Controllers
                     {
                         return RedirectToAction("Details", "Teams", new { id = reviewToUpdate.TeamId });
                     }
-\                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Home");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
