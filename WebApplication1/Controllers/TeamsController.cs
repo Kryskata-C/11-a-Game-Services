@@ -149,12 +149,89 @@ public class TeamsController : Controller
         return View(team);
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(
+    string currentSearchTerm,
+    string searchTerm,
+    string sortOrder,
+    int? pageNumber)
     {
-        var teams = await _context.Teams
-                                .Include(t => t.Players)
-                                .OrderBy(t => t.Name)
-                                .ToListAsync();
-        return View(teams);
+        if (searchTerm != null)
+        {
+            pageNumber = 1;
+        }
+        else
+        {
+            searchTerm = currentSearchTerm; 
+        }
+
+        if (string.IsNullOrEmpty(sortOrder))
+        {
+            sortOrder = "name_asc";
+        }
+
+        var query = _context.Teams
+                            .Include(t => t.Players) 
+                            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(t => t.Name.Contains(searchTerm) ||
+                                     (t.Description != null && t.Description.Contains(searchTerm)));
+        }
+
+        switch (sortOrder)
+        {
+            case "name_desc":
+                query = query.OrderByDescending(t => t.Name);
+                break;
+            case "price_asc":
+                query = query.OrderBy(t => t.PricePerHour);
+                break;
+            case "price_desc":
+                query = query.OrderByDescending(t => t.PricePerHour);
+                break;
+            case "rating_asc":
+                query = query.OrderBy(t => t.Rating);
+                break;
+            case "rating_desc":
+                query = query.OrderByDescending(t => t.Rating);
+                break;
+            case "date_asc":
+                query = query.OrderBy(t => t.DateCreated);
+                break;
+            case "date_desc":
+                query = query.OrderByDescending(t => t.DateCreated);
+                break;
+            case "name_asc": 
+            default:
+                query = query.OrderBy(t => t.Name);
+                break;
+        }
+
+        int pageSize = 6; 
+        int currentPageNumber = pageNumber ?? 1;
+        var totalCount = await query.CountAsync();
+        var teamsForPage = await query
+                                  .Skip((currentPageNumber - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToListAsync();
+
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        if (totalPages == 0) totalPages = 1;
+
+        var viewModel = new TeamIndexViewModel
+        {
+            Teams = teamsForPage,
+            PageNumber = currentPageNumber,
+            TotalPages = totalPages,
+            CurrentSortOrder = sortOrder,
+            CurrentSearchTerm = searchTerm,
+            NameSortParam = sortOrder == "name_asc" ? "name_desc" : "name_asc",
+            PriceSortParam = sortOrder == "price_asc" ? "price_desc" : "price_asc",
+            RatingSortParam = sortOrder == "rating_asc" ? "rating_desc" : "rating_asc",
+            DateCreatedSortParam = sortOrder == "date_asc" ? "date_desc" : "date_asc"
+        };
+
+        return View(viewModel);
     }
 }

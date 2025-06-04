@@ -1,0 +1,129 @@
+﻿@model WebApplication1.Models.TeamIndexViewModel
+@{
+    ViewData["Title"] = "All Teams";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary mb-3">Create New Team</a>
+</p>
+
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="searchTerm" value="@Model.CurrentSearchTerm" class="form-control" placeholder="Search by Team Name or Description..." />
+        <input type="hidden" name="sortOrder" value="@Model.CurrentSortOrder" />
+        <button type="submit" class="btn btn-outline-secondary">Search</button>
+        @if (!string.IsNullOrEmpty(Model.CurrentSearchTerm))
+        {
+            <a asp-action="Index" asp-route-sortOrder="@Model.CurrentSortOrder" class="btn btn-outline-info">Clear Search</a>
+        }
+    </div>
+</form>
+
+@if (Model.Teams.Any())
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var team in Model.Teams)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    @if (!string.IsNullOrEmpty(team.ImageUrl))
+                    {
+                        <img src="@team.ImageUrl" class="card-img-top" alt="@team.Name" style="height: 200px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <img src="/images/default-team.png" class="card-img-top" alt="Default Team Image" style="height: 200px; object-fit: cover;">
+                    }
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@Html.DisplayFor(modelItem => team.Name)</h5>
+                        <p class="card-text flex-grow-1">@Html.DisplayFor(modelItem => team.Description)</p>
+                        <p class="card-text"><strong>Price:</strong> @team.PricePerHour.ToString("C") / hour</p>
+                        <p class="card-text"><strong>Rating:</strong> @team.Rating / 5</p>
+                        <p class="card-text"><small class="text-muted">Created: @team.DateCreated.ToString("yyyy-MM-dd")</small></p>
+                        <p class="card-text"><small class="text-muted">Players: @(team.Players != null ? team.Players.Count : 0)</small></p>
+                        <div class="mt-auto">
+                            <a asp-action="Details" asp-route-id="@team.Id" class="btn btn-info btn-sm">Details</a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-warning btn-sm disabled">Edit (NYI)</a>
+                                <a asp-action="Delete" asp-route-id="@team.Id" class="btn btn-danger btn-sm disabled">Delete (NYI)</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <nav aria-label="Team pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            @if (Model.HasPreviousPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-sortOrder="@Model.CurrentSortOrder"
+                       asp-route-pageNumber="@(Model.PageNumber - 1)"
+                       asp-route-currentSearchTerm="@Model.CurrentSearchTerm"
+                       asp-route-searchTerm="@Model.CurrentSearchTerm">Previous</a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+            }
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-sortOrder="@Model.CurrentSortOrder"
+                       asp-route-pageNumber="@i"
+                       asp-route-currentSearchTerm="@Model.CurrentSearchTerm"
+                       asp-route-searchTerm="@Model.CurrentSearchTerm">@i</a>
+                </li>
+            }
+
+            @if (Model.HasNextPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-sortOrder="@Model.CurrentSortOrder"
+                       asp-route-pageNumber="@(Model.PageNumber + 1)"
+                       asp-route-currentSearchTerm="@Model.CurrentSearchTerm"
+                       asp-route-searchTerm="@Model.CurrentSearchTerm">Next</a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+else
+{
+    <div class="alert alert-info mt-3">
+        No teams found matching your criteria.
+    </div>
+}
+
+<div class="mt-4">
+    <strong>Sort by:</strong>
+    <a asp-action="Index" asp-route-sortOrder="@Model.NameSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">Name</a> |
+    <a asp-action="Index" asp-route-sortOrder="@Model.PriceSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">Price</a> |
+    <a asp-action="Index" asp-route-sortOrder="@Model.RatingSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">Rating</a> |
+    <a asp-action="Index" asp-route-sortOrder="@Model.DateCreatedSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">Date Created</a>
+</div>
