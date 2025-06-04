@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using WebApplication1.Data;
 using WebApplication1.Data.Entities;
 using WebApplication1.Models;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using System;
+using System.Collections.Generic;
 
 [Authorize]
 public class TeamsController : Controller
@@ -48,7 +48,7 @@ public class TeamsController : Controller
                 Name = model.Name,
                 Description = model.Description,
                 PricePerHour = model.PricePerHour,
-                Rating = 0, // Team rating will be 0 initially or calculated based on reviews later
+                Rating = 0,
                 DateCreated = DateTime.UtcNow
             };
 
@@ -71,7 +71,7 @@ public class TeamsController : Controller
                 catch (Exception ex)
                 {
                     ModelState.AddModelError(nameof(model.TeamImageFile), $"File upload failed: {ex.Message}");
-                    model.AvailablePlayers = await GetAvailablePlayersAsync(model.SelectedPlayerIds);
+                    model.AvailablePlayers = await GetAvailablePlayersForCreateAsync(model.SelectedPlayerIds);
                     return View(model);
                 }
             }
@@ -116,51 +116,11 @@ public class TeamsController : Controller
             TempData["SuccessMessage"] = $"Team '{team.Name}' created successfully!";
             return RedirectToAction("Details", "Teams", new { id = team.Id });
         }
-        model.AvailablePlayers = await GetAvailablePlayersAsync(model.SelectedPlayerIds);
+        model.AvailablePlayers = await GetAvailablePlayersForCreateAsync(model.SelectedPlayerIds);
         return View(model);
     }
 
-    [HttpGet]
-    [Authorize]
-    public async Task<IActionResult> Edit(int? id)
-    {
-        if (id == null)
-        {
-            return NotFound();
-        }
-
-        var team = await _context.Teams
-                                 .Include(t => t.Players) 
-                                 .FirstOrDefaultAsync(t => t.Id == id);
-
-        if (team == null)
-        {
-            return NotFound();
-        }
-
-        var viewModel = new TeamEditViewModel
-        {
-            Id = team.Id,
-            Name = team.Name,
-            Description = team.Description,
-            PricePerHour = team.PricePerHour,
-            ExistingImageUrl = team.ImageUrl,
-            SelectedPlayerIds = team.Players.Select(p => p.Id).ToList(),
-            AvailablePlayers = await _context.Players
-                .Where(p => p.TeamId == null || p.TeamId == team.Id) 
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.GamerTag,
-                    Selected = team.Players.Any(tp => tp.Id == p.Id) 
-                })
-                .OrderBy(p => p.Text)
-                .ToListAsync()
-        };
-
-        return View(viewModel);
-    }
-    private async Task<List<SelectListItem>> GetAvailablePlayersAsync(List<int> alreadySelectedPlayerIds)
+    private async Task<List<SelectListItem>> GetAvailablePlayersForCreateAsync(List<int> alreadySelectedPlayerIds)
     {
         return await _context.Players
             .Where(p => p.TeamId == null || (alreadySelectedPlayerIds != null && alreadySelectedPlayerIds.Contains(p.Id)))
@@ -201,7 +161,7 @@ public class TeamsController : Controller
         }
         else
         {
-            searchTerm = currentSearchTerm; 
+            searchTerm = currentSearchTerm;
         }
 
         if (string.IsNullOrEmpty(sortOrder))
@@ -210,7 +170,7 @@ public class TeamsController : Controller
         }
 
         var query = _context.Teams
-                            .Include(t => t.Players) 
+                            .Include(t => t.Players)
                             .AsQueryable();
 
         if (!string.IsNullOrEmpty(searchTerm))
@@ -242,13 +202,13 @@ public class TeamsController : Controller
             case "date_desc":
                 query = query.OrderByDescending(t => t.DateCreated);
                 break;
-            case "name_asc": 
+            case "name_asc":
             default:
                 query = query.OrderBy(t => t.Name);
                 break;
         }
 
-        int pageSize = 6; 
+        int pageSize = 6;
         int currentPageNumber = pageNumber ?? 1;
         var totalCount = await query.CountAsync();
         var teamsForPage = await query
@@ -273,5 +233,197 @@ public class TeamsController : Controller
         };
 
         return View(viewModel);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var team = await _context.Teams
+                                 .Include(t => t.Players)
+                                 .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (team == null)
+        {
+            return NotFound();
+        }
+
+        var viewModel = new TeamEditViewModel
+        {
+            Id = team.Id,
+            Name = team.Name,
+            Description = team.Description,
+            PricePerHour = team.PricePerHour,
+            ExistingImageUrl = team.ImageUrl,
+            SelectedPlayerIds = team.Players.Select(p => p.Id).ToList(),
+            AvailablePlayers = await _context.Players
+                .Where(p => p.TeamId == null || p.TeamId == team.Id)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.GamerTag,
+                    Selected = team.Players.Any(tp => tp.Id == p.Id)
+                })
+                .OrderBy(p => p.Text)
+                .ToListAsync()
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> Edit(int id, TeamEditViewModel model)
+    {
+        if (id != model.Id)
+        {
+            return NotFound();
+        }
+
+        if (ModelState.IsValid)
+        {
+            var teamToUpdate = await _context.Teams
+                                             .Include(t => t.Players)
+                                             .FirstOrDefaultAsync(t => t.Id == model.Id);
+
+            if (teamToUpdate == null)
+            {
+                return NotFound($"Team with ID {model.Id} not found.");
+            }
+
+            teamToUpdate.Name = model.Name;
+            teamToUpdate.Description = model.Description;
+            teamToUpdate.PricePerHour = model.PricePerHour;
+
+            if (model.NewTeamImageFile != null && model.NewTeamImageFile.Length > 0)
+            {
+                if (!string.IsNullOrEmpty(teamToUpdate.ImageUrl) && teamToUpdate.ImageUrl != "/images/default-team.png")
+                {
+                    string oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, teamToUpdate.ImageUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                        catch (IOException)
+                        {
+                            // Log error or handle
+                        }
+                    }
+                }
+
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "teamlogos");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.NewTeamImageFile.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                try
+                {
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.NewTeamImageFile.CopyToAsync(fileStream);
+                    }
+                    teamToUpdate.ImageUrl = "/images/teamlogos/" + uniqueFileName;
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(nameof(model.NewTeamImageFile), $"File upload failed: {ex.Message}");
+                    model.AvailablePlayers = await GetAvailablePlayersForEditAsync(teamToUpdate.Id, model.SelectedPlayerIds ?? new List<int>());
+                    model.ExistingImageUrl = teamToUpdate.ImageUrl;
+                    return View(model);
+                }
+            }
+
+            var selectedPlayerIds = model.SelectedPlayerIds ?? new List<int>();
+            var currentAssignedPlayerIds = teamToUpdate.Players.Select(p => p.Id).ToList();
+
+            var playersToRemove = teamToUpdate.Players
+                                    .Where(p => !selectedPlayerIds.Contains(p.Id))
+                                    .ToList();
+            foreach (var player in playersToRemove)
+            {
+                player.TeamId = null;
+            }
+
+            var playerIdsToAdd = selectedPlayerIds
+                                    .Except(currentAssignedPlayerIds)
+                                    .ToList();
+
+            foreach (var playerIdToAdd in playerIdsToAdd)
+            {
+                var player = await _context.Players.FindAsync(playerIdToAdd);
+                if (player != null)
+                {
+                    if (player.TeamId == null || player.TeamId == teamToUpdate.Id)
+                    {
+                        player.TeamId = teamToUpdate.Id;
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, $"Player {player.GamerTag} is already assigned to another team.");
+                        model.AvailablePlayers = await GetAvailablePlayersForEditAsync(teamToUpdate.Id, model.SelectedPlayerIds ?? new List<int>());
+                        model.ExistingImageUrl = teamToUpdate.ImageUrl;
+                        return View(model);
+                    }
+                }
+            }
+
+            try
+            {
+                _context.Update(teamToUpdate);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Team '{teamToUpdate.Name}' updated successfully!";
+                return RedirectToAction("Details", new { id = teamToUpdate.Id });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await TeamExists(teamToUpdate.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "The record was modified by another user. Your edit operation was canceled. Please try again.");
+                }
+            }
+            catch (DbUpdateException ex)
+            {
+                ModelState.AddModelError("", "Unable to save changes. Error: " + ex.Message);
+            }
+        }
+
+        model.AvailablePlayers = await GetAvailablePlayersForEditAsync(model.Id, model.SelectedPlayerIds ?? new List<int>());
+        model.ExistingImageUrl ??= (await _context.Teams.AsNoTracking().FirstOrDefaultAsync(t => t.Id == model.Id))?.ImageUrl;
+
+
+        return View(model);
+    }
+
+    private async Task<bool> TeamExists(int id)
+    {
+        return await _context.Teams.AnyAsync(e => e.Id == id);
+    }
+
+    private async Task<List<SelectListItem>> GetAvailablePlayersForEditAsync(int teamId, List<int> currentSelectedPlayerIdsOnForm)
+    {
+        var players = await _context.Players
+            .Where(p => p.TeamId == null || p.TeamId == teamId)
+            .OrderBy(p => p.GamerTag)
+            .ToListAsync();
+
+        return players.Select(p => new SelectListItem
+        {
+            Value = p.Id.ToString(),
+            Text = p.GamerTag,
+            Selected = currentSelectedPlayerIdsOnForm.Contains(p.Id)
+        })
+            .ToList();
     }
 }
