@@ -48,7 +48,7 @@ public class TeamsController : Controller
                 Name = model.Name,
                 Description = model.Description,
                 PricePerHour = model.PricePerHour,
-                Rating = 0,
+                Rating = 0, 
                 DateCreated = DateTime.UtcNow
             };
 
@@ -148,7 +148,7 @@ public class TeamsController : Controller
         }
         return View(team);
     }
-
+    
     public async Task<IActionResult> Index(
     string currentSearchTerm,
     string searchTerm,
@@ -202,13 +202,13 @@ public class TeamsController : Controller
             case "date_desc":
                 query = query.OrderByDescending(t => t.DateCreated);
                 break;
-            case "name_asc":
+            case "name_asc": 
             default:
                 query = query.OrderBy(t => t.Name);
                 break;
         }
 
-        int pageSize = 6;
+        int pageSize = 6; 
         int currentPageNumber = pageNumber ?? 1;
         var totalCount = await query.CountAsync();
         var teamsForPage = await query
@@ -236,7 +236,7 @@ public class TeamsController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize] 
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
@@ -245,14 +245,14 @@ public class TeamsController : Controller
         }
 
         var team = await _context.Teams
-                                 .Include(t => t.Players)
+                                 .Include(t => t.Players) 
                                  .FirstOrDefaultAsync(t => t.Id == id);
 
         if (team == null)
         {
             return NotFound();
         }
-
+        
         var viewModel = new TeamEditViewModel
         {
             Id = team.Id,
@@ -262,12 +262,12 @@ public class TeamsController : Controller
             ExistingImageUrl = team.ImageUrl,
             SelectedPlayerIds = team.Players.Select(p => p.Id).ToList(),
             AvailablePlayers = await _context.Players
-                .Where(p => p.TeamId == null || p.TeamId == team.Id)
+                .Where(p => p.TeamId == null || p.TeamId == team.Id) 
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
                     Text = p.GamerTag,
-                    Selected = team.Players.Any(tp => tp.Id == p.Id)
+                    Selected = team.Players.Any(tp => tp.Id == p.Id) 
                 })
                 .OrderBy(p => p.Text)
                 .ToListAsync()
@@ -318,7 +318,7 @@ public class TeamsController : Controller
                         }
                     }
                 }
-
+                
                 string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "teamlogos");
                 if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
                 string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.NewTeamImageFile.FileName);
@@ -340,18 +340,18 @@ public class TeamsController : Controller
                     return View(model);
                 }
             }
-
+            
             var selectedPlayerIds = model.SelectedPlayerIds ?? new List<int>();
             var currentAssignedPlayerIds = teamToUpdate.Players.Select(p => p.Id).ToList();
 
             var playersToRemove = teamToUpdate.Players
                                     .Where(p => !selectedPlayerIds.Contains(p.Id))
-                                    .ToList();
+                                    .ToList(); 
             foreach (var player in playersToRemove)
             {
-                player.TeamId = null;
+                player.TeamId = null; 
             }
-
+            
             var playerIdsToAdd = selectedPlayerIds
                                     .Except(currentAssignedPlayerIds)
                                     .ToList();
@@ -361,7 +361,7 @@ public class TeamsController : Controller
                 var player = await _context.Players.FindAsync(playerIdToAdd);
                 if (player != null)
                 {
-                    if (player.TeamId == null || player.TeamId == teamToUpdate.Id)
+                    if (player.TeamId == null || player.TeamId == teamToUpdate.Id) 
                     {
                         player.TeamId = teamToUpdate.Id;
                     }
@@ -395,17 +395,91 @@ public class TeamsController : Controller
             }
             catch (DbUpdateException ex)
             {
-                ModelState.AddModelError("", "Unable to save changes. Error: " + ex.Message);
+                 ModelState.AddModelError("", "Unable to save changes. Error: " + ex.Message);
             }
         }
-
+        
         model.AvailablePlayers = await GetAvailablePlayersForEditAsync(model.Id, model.SelectedPlayerIds ?? new List<int>());
         model.ExistingImageUrl ??= (await _context.Teams.AsNoTracking().FirstOrDefaultAsync(t => t.Id == model.Id))?.ImageUrl;
 
 
         return View(model);
     }
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Delete(int? id, bool? saveChangesError = false)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
 
+        var team = await _context.Teams
+            .AsNoTracking()
+            .Include(t => t.Players)
+            .Include(t => t.Reviews)
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (team == null)
+        {
+            return NotFound();
+        }
+
+        if (saveChangesError.GetValueOrDefault())
+        {
+            ViewData["ErrorMessage"] =
+                "Delete failed. Try again, and if the problem persists " +
+                "see your system administrator.";
+        }
+
+        return View(team);
+    }
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var teamToDelete = await _context.Teams
+                                         .Include(t => t.Players) 
+                                         .Include(t => t.Reviews) 
+                                         .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (teamToDelete == null)
+        {
+            TempData["ErrorMessage"] = "Team not found or already deleted.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        try
+        {
+            if (!string.IsNullOrEmpty(teamToDelete.ImageUrl) && teamToDelete.ImageUrl != "/images/default-team.png")
+            {
+                string imagePath = Path.Combine(_webHostEnvironment.WebRootPath, teamToDelete.ImageUrl.TrimStart('/'));
+                if (System.IO.File.Exists(imagePath))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(imagePath);
+                    }
+                    catch (IOException ex)
+                    {
+                        Console.WriteLine($"Error deleting image {imagePath}: {ex.Message}"); // Replace with proper logging
+                    }
+                }
+            }
+
+            _context.Teams.Remove(teamToDelete);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Team '{teamToDelete.Name}' and its associated reviews have been successfully deleted. Players formerly on this team are now unassigned.";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (DbUpdateException /* ex */)
+        {
+            TempData["ErrorMessage"] = "Unable to delete team. Try again, and if the problem persists, see your system administrator.";
+            return RedirectToAction(nameof(Delete), new { id = id, saveChangesError = true });
+        }
+    }
     private async Task<bool> TeamExists(int id)
     {
         return await _context.Teams.AnyAsync(e => e.Id == id);
@@ -419,11 +493,11 @@ public class TeamsController : Controller
             .ToListAsync();
 
         return players.Select(p => new SelectListItem
-        {
-            Value = p.Id.ToString(),
-            Text = p.GamerTag,
-            Selected = currentSelectedPlayerIdsOnForm.Contains(p.Id)
-        })
+            {
+                Value = p.Id.ToString(),
+                Text = p.GamerTag,
+                Selected = currentSelectedPlayerIdsOnForm.Contains(p.Id) 
+            })
             .ToList();
     }
 }
