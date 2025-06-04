@@ -120,6 +120,46 @@ public class TeamsController : Controller
         return View(model);
     }
 
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var team = await _context.Teams
+                                 .Include(t => t.Players) 
+                                 .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (team == null)
+        {
+            return NotFound();
+        }
+
+        var viewModel = new TeamEditViewModel
+        {
+            Id = team.Id,
+            Name = team.Name,
+            Description = team.Description,
+            PricePerHour = team.PricePerHour,
+            ExistingImageUrl = team.ImageUrl,
+            SelectedPlayerIds = team.Players.Select(p => p.Id).ToList(),
+            AvailablePlayers = await _context.Players
+                .Where(p => p.TeamId == null || p.TeamId == team.Id) 
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.GamerTag,
+                    Selected = team.Players.Any(tp => tp.Id == p.Id) 
+                })
+                .OrderBy(p => p.Text)
+                .ToListAsync()
+        };
+
+        return View(viewModel);
+    }
     private async Task<List<SelectListItem>> GetAvailablePlayersAsync(List<int> alreadySelectedPlayerIds)
     {
         return await _context.Players
