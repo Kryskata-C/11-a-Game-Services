@@ -182,7 +182,110 @@ namespace WebApplication1.Controllers
                 }
             }
 
-\            return View(model);
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id, bool? saveChangesError = false)
+        {
+            var review = await _context.Reviews
+                                       .AsNoTracking()
+                                       .Include(r => r.Player)
+                                       .Include(r => r.Team)
+                                       .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (review == null)
+            {
+                return NotFound();
+            }
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (review.UserId != currentUserId && !User.IsInRole("Admin"))
+            {
+                TempData["ErrorMessage"] = "You are not authorized to delete this review.";
+                if (review.PlayerId.HasValue)
+                    return RedirectToAction("Details", "Players", new { id = review.PlayerId });
+                if (review.TeamId.HasValue)
+                    return RedirectToAction("Details", "Teams", new { id = review.TeamId });
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (saveChangesError.GetValueOrDefault())
+            {
+                ViewData["ErrorMessage"] = "Delete failed. Try again, and if the problem persists see your system administrator.";
+            }
+
+            if (review.PlayerId.HasValue)
+            {
+                ViewData["ReviewSubjectName"] = review.Player?.GamerTag ?? "Player";
+                ViewData["ReviewSubjectType"] = "Player";
+            }
+            else if (review.TeamId.HasValue)
+            {
+                ViewData["ReviewSubjectName"] = review.Team?.Name ?? "Team";
+                ViewData["ReviewSubjectType"] = "Team";
+            }
+            else
+            {
+                ViewData["ReviewSubjectName"] = "Item"; 
+                ViewData["ReviewSubjectType"] = "Item";
+            }
+
+            return View(review); 
+        }
+
+        [Authorize]
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id, int? PlayerId, int? TeamId) 
+        {
+            var reviewToDelete = await _context.Reviews.FindAsync(id);
+
+            if (reviewToDelete == null)
+            {
+                TempData["ErrorMessage"] = "Review not found or already deleted.";
+                if (PlayerId.HasValue)
+                    return RedirectToAction("Details", "Players", new { id = PlayerId });
+                if (TeamId.HasValue)
+                    return RedirectToAction("Details", "Teams", new { id = TeamId });
+                return RedirectToAction("Index", "Home");
+            }
+
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (reviewToDelete.UserId != currentUserId && !User.IsInRole("Admin"))
+            {
+                TempData["ErrorMessage"] = "You are not authorized to delete this review.";
+                if (PlayerId.HasValue)
+                    return RedirectToAction("Details", "Players", new { id = PlayerId });
+                if (TeamId.HasValue)
+                    return RedirectToAction("Details", "Teams", new { id = TeamId });
+                return RedirectToAction("Index", "Home"); 
+            }
+
+            try
+            {
+                _context.Reviews.Remove(reviewToDelete);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Review deleted successfully.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["ErrorMessage"] = "Unable to delete review. Try again, and if the problem persists see your system administrator.";
+                return RedirectToAction(nameof(Delete), new { id = id, saveChangesError = true });
+            }
+
+            if (PlayerId.HasValue)
+            {
+                return RedirectToAction("Details", "Players", new { id = PlayerId });
+            }
+            else if (TeamId.HasValue)
+            {
+                return RedirectToAction("Details", "Teams", new { id = TeamId });
+            }
+
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
