@@ -6,7 +6,11 @@ namespace WebApplication1.Services
 {
     public interface IPlayerService
     {
-        Task<IEnumerable<Player>> GetAllPlayersAsync();
+        Task<(IEnumerable<Player> Players, int TotalCount)> GetAllPlayersAsync(
+        string searchTerm,
+        string sortOrder,
+        int pageNumber,
+        int pageSize);
         Task<Player> GetPlayerByIdAsync(int id);
         Task CreatePlayerAsync(Player player);
         Task<bool> UpdatePlayerAsync(Player player);

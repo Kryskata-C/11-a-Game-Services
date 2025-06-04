@@ -28,15 +28,50 @@ public class PlayersController : Controller
         return User.IsInRole("Admin");
     }
 
-    public async Task<IActionResult> PlayerHire()
+    public async Task<IActionResult> PlayerHire(
+    string currentSearchTerm,
+    string searchTerm,
+    string sortOrder,
+    int? pageNumber)
     {
         ViewBag.IsAdmin = IsAdminUser();
-        var players = await _playerService.GetAllPlayersAsync();
-        if (players == null)
+
+        if (searchTerm != null)
         {
-            players = new List<Player>();
+            pageNumber = 1;
         }
-        return View("PlayerHire", players);
+        else
+        {
+            searchTerm = currentSearchTerm; 
+        }
+
+        if (string.IsNullOrEmpty(sortOrder))
+        {
+            sortOrder = "gamertag_asc"; 
+        }
+
+        int pageSize = 6; 
+        int currentPageNumber = pageNumber ?? 1;
+
+        var serviceResult = await _playerService.GetAllPlayersAsync(searchTerm, sortOrder, currentPageNumber, pageSize);
+
+        var totalPages = (int)Math.Ceiling(serviceResult.TotalCount / (double)pageSize);
+        if (totalPages == 0) totalPages = 1;
+
+
+        var viewModel = new PlayerHireViewModel
+        {
+            Players = serviceResult.Players,
+            PageNumber = currentPageNumber,
+            TotalPages = totalPages,
+            CurrentSortOrder = sortOrder,
+            CurrentSearchTerm = searchTerm,
+            GamerTagSortParam = sortOrder == "gamertag_asc" ? "gamertag_desc" : "gamertag_asc",
+            PriceSortParam = sortOrder == "price_asc" ? "price_desc" : "price_asc",
+            RatingSortParam = sortOrder == "rating_asc" ? "rating_desc" : "rating_asc"
+        };
+
+        return View("PlayerHire", viewModel);
     }
 
     public IActionResult Index()
@@ -44,14 +79,12 @@ public class PlayersController : Controller
         return RedirectToAction(nameof(PlayerHire));
     }
 
-    // GET: Players/Create
     public IActionResult Create()
     {
         ViewBag.IsAdmin = IsAdminUser();
         return View(new PlayerCreateViewModel());
     }
 
-    // POST: Players/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(PlayerCreateViewModel viewModel)
@@ -86,7 +119,6 @@ public class PlayersController : Controller
                 }
             }
 
-            // In PlayersController Create POST action
             Player newPlayer = new Player
             {
                 GamerTag = viewModel.GamerTag,
@@ -106,7 +138,6 @@ public class PlayersController : Controller
                         CommentText = reviewVm.CommentText,
                         StarRating = reviewVm.StarRating,
                         ReviewDate = DateTime.UtcNow,
-                        // Player will be set by EF Core when newPlayer is saved due to relationship
                     };
                     newPlayer.PlayerReviews.Add(review);
                 }
@@ -128,7 +159,6 @@ public class PlayersController : Controller
         return View(viewModel);
     }
     
-    // GET: Players/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
         ViewBag.IsAdmin = IsAdminUser();
@@ -145,15 +175,9 @@ public class PlayersController : Controller
         return View(player);
     }
 
-    // POST: Players/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, [Bind("Id,GamerTag,Description,PricePerHour,Rating,ImageUrl,TeamId")] Player player)
-    // IMPORTANT: Removed "Reviews" from Bind attribute here too, assuming it was the old string property.
-    // If "Reviews" in the Bind was meant for the ICollection<Review> PlayerReviews,
-    // binding collections of complex objects directly from forms is more complex and usually
-    // handled differently (e.g., by managing individual review items, not binding the whole collection).
-    // For now, this Edit POST does not handle updating the PlayerReviews collection.
     {
         ViewBag.IsAdmin = IsAdminUser();
         if (id != player.Id)
@@ -187,7 +211,6 @@ public class PlayersController : Controller
         return View(player);
     }
 
-    // GET: Players/Delete/5
     public async Task<IActionResult> Delete(int? id)
     {
         ViewBag.IsAdmin = IsAdminUser();

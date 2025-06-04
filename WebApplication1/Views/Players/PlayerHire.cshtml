@@ -1,50 +1,134 @@
-﻿@model IEnumerable<Player>
+﻿@model WebApplication1.Models.PlayerHireViewModel
 @{
     ViewData["Title"] = "Hire a Player";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    bool isAdmin = ViewBag.IsAdmin ?? false;
 }
 
-<link rel="stylesheet" href="~/css/playerHire.css" asp-append-version="true" />
-@if (isAdmin)
+<h1>@ViewData["Title"]</h1>
+
+@if (TempData["SuccessMessage"] != null)
 {
-    <div style="margin-bottom: 20px;">
-        <a asp-controller="Players" asp-action="Create" class="btn btn-primary">Add New Player</a>
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
     </div>
 }
 
-<div class="players-container">
-    @foreach (var player in Model)
-    {
-        <div class="player-card">
-            <img class="player-image" src="@(string.IsNullOrEmpty(player.ImageUrl) ? "/default_player.jpg" : player.ImageUrl)" alt="@player.GamerTag" />
-            <h3 class="player-name">@player.GamerTag</h3>
-            <p class="player-price">$@player.PricePerHour/hour</p> @* Updated from VirtualCurrencyBalance *@
-            <div class="brawl-stats">
-                @* You can rename this class if 'brawl-stats' is no longer fitting *@
-                <p>Rating: @player.Rating</p> @* Updated from Level *@
-                @* XP: @player.ExperiencePoints - Removed this line *@
-                @* You could also add player.Reviews or a snippet of player.Description here if desired *@
-                @* Example: <p>Reviews: @(player.Reviews?.Substring(0, Math.Min(player.Reviews.Length, 50)) ?? "No reviews") ...</p> *@
-            </div>
+@if (ViewBag.IsAdmin == true)
+{
+    <p>
+        <a asp-action="Create" class="btn btn-primary mb-3">Create New Player</a>
+    </p>
+}
 
-            <form asp-controller="Home" asp-action="AddToBasket" method="post" style="display:inline-block; margin-right: 5px;">
-                <input type="hidden" name="playerName" value="@player.GamerTag" />
-                <input type="hidden" name="price" value="@player.PricePerHour" /> @* Updated from VirtualCurrencyBalance *@
-                <button type="submit" class="hire-btn">Hire</button>
-            </form>
-
-            <a asp-controller="Players" asp-action="Details" asp-route-id="@player.Id" class="info-btn" style="display:inline-block;">Info</a>
+<form asp-action="PlayerHire" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="searchTerm" value="@Model.CurrentSearchTerm" class="form-control" placeholder="Search by GamerTag or Description..." />
+        <input type="hidden" name="sortOrder" value="@Model.CurrentSortOrder" />
+        <button type="submit" class="btn btn-outline-secondary">Search</button>
+        @if (!string.IsNullOrEmpty(Model.CurrentSearchTerm))
+        {
+            <a asp-action="PlayerHire" asp-route-sortOrder="@Model.CurrentSortOrder" class="btn btn-outline-info">Clear Search</a>
+        }
+    </div>
+</form>
 
 
-            @if (isAdmin)
-            {
-                <div style="margin-top: 10px;">
-                    <a asp-controller="Players" asp-action="Edit" asp-route-id="@player.Id" class="btn btn-sm btn-info">Edit</a>
-                    <a asp-controller="Players" asp-action="Details" asp-route-id="@player.Id" class="btn btn-sm btn-secondary">Details</a>
-                    <a asp-controller="Players" asp-action="Delete" asp-route-id="@player.Id" class="btn btn-sm btn-danger">Delete</a>
+@if (Model.Players.Any())
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var player in Model.Players)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    @if (!string.IsNullOrEmpty(player.ImageUrl))
+                    {
+                        <img src="@player.ImageUrl" class="card-img-top" alt="@player.GamerTag" style="height: 200px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <img src="/images/default-player.png" class="card-img-top" alt="Default Player Image" style="height: 200px; object-fit: cover;">
+                    }
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@Html.DisplayFor(modelItem => player.GamerTag)</h5>
+                        <p class="card-text flex-grow-1">@Html.DisplayFor(modelItem => player.Description)</p>
+                        <p class="card-text"><strong>Price:</strong> @player.PricePerHour.ToString("C") / hour</p>
+                        <p class="card-text"><strong>Rating:</strong> @player.Rating / 5</p>
+                        @if (player.Team != null)
+                        {
+                            <p class="card-text"><small class="text-muted">Team: @player.Team.Name</small></p>
+                        }
+                        <div class="mt-auto">
+                            <a asp-action="Details" asp-route-id="@player.Id" class="btn btn-info btn-sm">Details</a>
+                            @if (ViewBag.IsAdmin == true)
+                            {
+                                <a asp-action="Edit" asp-route-id="@player.Id" class="btn btn-warning btn-sm">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@player.Id" class="btn btn-danger btn-sm">Delete</a>
+                            }
+                        </div>
+                    </div>
                 </div>
+            </div>
+        }
+    </div>
+
+    <nav aria-label="Player pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            @if (Model.HasPreviousPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="PlayerHire"
+                       asp-route-sortOrder="@Model.CurrentSortOrder"
+                       asp-route-pageNumber="@(Model.PageNumber - 1)"
+                       asp-route-currentSearchTerm="@Model.CurrentSearchTerm"
+                       asp-route-searchTerm="@Model.CurrentSearchTerm">Previous</a>
+                </li>
             }
-        </div>
-    }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+            }
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link" asp-action="PlayerHire"
+                       asp-route-sortOrder="@Model.CurrentSortOrder"
+                       asp-route-pageNumber="@i"
+                       asp-route-currentSearchTerm="@Model.CurrentSearchTerm"
+                       asp-route-searchTerm="@Model.CurrentSearchTerm">@i</a>
+                </li>
+            }
+
+            @if (Model.HasNextPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="PlayerHire"
+                       asp-route-sortOrder="@Model.CurrentSortOrder"
+                       asp-route-pageNumber="@(Model.PageNumber + 1)"
+                       asp-route-currentSearchTerm="@Model.CurrentSearchTerm"
+                       asp-route-searchTerm="@Model.CurrentSearchTerm">Next</a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+else
+{
+    <div class="alert alert-info mt-3">
+        No players found matching your criteria.
+    </div>
+}
+
+<div class="mt-4">
+    <strong>Sort by:</strong>
+    <a asp-action="PlayerHire" asp-route-sortOrder="@Model.GamerTagSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">GamerTag</a> |
+    <a asp-action="PlayerHire" asp-route-sortOrder="@Model.PriceSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">Price</a> |
+    <a asp-action="PlayerHire" asp-route-sortOrder="@Model.RatingSortParam" asp-route-currentSearchTerm="@Model.CurrentSearchTerm" asp-route-searchTerm="@Model.CurrentSearchTerm">Rating</a>
 </div>

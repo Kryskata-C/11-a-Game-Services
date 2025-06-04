@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-// using WebApplication1.Models; // If Player is in Models namespace
-// Ensure your Player model is accessible, e.g. via a using directive if it's in a different namespace.
+
 namespace WebApplication1.Services
 {
     public class PlayerService : IPlayerService
@@ -15,52 +14,76 @@ namespace WebApplication1.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<Player>> GetAllPlayersAsync()
+
+        public async Task<(IEnumerable<Player> Players, int TotalCount)> GetAllPlayersAsync(
+            string searchTerm,
+            string sortOrder,
+            int pageNumber,
+            int pageSize)
         {
-            // Removed .Include(p => p.ApplicationUser) as it's no longer part of Player
-            return await _context.Players.Include(p => p.Team).ToListAsync(); // Include Team if you want team details
+            var query = _context.Players.Include(p => p.Team).AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(p => p.GamerTag.Contains(searchTerm) ||
+                                         (p.Description != null && p.Description.Contains(searchTerm)));
+            }
+
+            
+            switch (sortOrder)
+            {
+                case "gamertag_desc":
+                    query = query.OrderByDescending(p => p.GamerTag);
+                    break;
+                case "price_asc":
+                    query = query.OrderBy(p => p.PricePerHour);
+                    break;
+                case "price_desc":
+                    query = query.OrderByDescending(p => p.PricePerHour);
+                    break;
+                case "rating_asc":
+                    query = query.OrderBy(p => p.Rating);
+                    break;
+                case "rating_desc":
+                    query = query.OrderByDescending(p => p.Rating);
+                    break;
+                case "gamertag_asc": 
+                default:
+                    query = query.OrderBy(p => p.GamerTag);
+                    break;
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var players = await query
+                                .Skip((pageNumber - 1) * pageSize)
+                                .Take(pageSize)
+                                .ToListAsync();
+
+            return (players, totalCount);
         }
 
         public async Task<Player> GetPlayerByIdAsync(int id)
         {
-            // Removed .Include(p => p.ApplicationUser)
             return await _context.Players
-                .Include(p => p.Team) // Include Team if you want team details
+                .Include(p => p.Team)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
         public async Task CreatePlayerAsync(Player player)
         {
-            // Removed: player.RegistrationDate = System.DateTime.UtcNow;
-            // Any other default values for new properties can be set here if needed
-            // For example, if Rating should default to 0 or PricePerHour to a base value.
-            // player.Rating = 0; // Example if new players should have 0 rating initially.
             _context.Add(player);
             await _context.SaveChangesAsync();
         }
 
         public async Task<bool> UpdatePlayerAsync(Player player)
         {
-            // Ensure the player object being passed in has its Id set correctly.
-            // The state of the entity will be marked as Modified.
-            // Detach any existing tracked entity with the same Id if necessary,
-            // or fetch the existing entity and update its properties.
-            // A simple _context.Update(player) can lead to issues if not handled carefully with detached entities.
-
             var existingPlayer = await _context.Players.FindAsync(player.Id);
             if (existingPlayer == null)
             {
-                return false; // Or throw not found exception
+                return false;
             }
-
-            // Update properties from the passed player object to the existingPlayer
             _context.Entry(existingPlayer).CurrentValues.SetValues(player);
-            // If you have navigation properties that might change (e.g., TeamId), handle them explicitly:
-            // existingPlayer.TeamId = player.TeamId;
-
-
-            // _context.Update(player); // This can sometimes be problematic if player is not tracked or if only partial data is sent.
-            // Using FindAsync and then updating properties is safer.
             try
             {
                 await _context.SaveChangesAsync();
@@ -68,19 +91,17 @@ namespace WebApplication1.Services
             }
             catch (DbUpdateConcurrencyException)
             {
-                // This catch block correctly checks if the player still exists.
                 if (!await PlayerExistsAsync(player.Id))
                 {
-                    return false; // Player was deleted.
+                    return false;
                 }
                 else
                 {
-                    throw; // Concurrency conflict (player modified by someone else).
+                    throw;
                 }
             }
-            catch (DbUpdateException) // Catch other potential update issues
+            catch (DbUpdateException)
             {
-                // Log error, handle specific DB constraints if necessary
                 return false;
             }
         }
@@ -92,7 +113,6 @@ namespace WebApplication1.Services
             {
                 return false;
             }
-
             _context.Players.Remove(player);
             await _context.SaveChangesAsync();
             return true;
