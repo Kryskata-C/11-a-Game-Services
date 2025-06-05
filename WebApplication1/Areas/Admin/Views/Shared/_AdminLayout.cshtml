@@ -1,0 +1,173 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Panel - 11-A Gaming</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        :root {
+            --admin-bg-dark: #1f232a;
+            --admin-surface-dark: #2a2e37;
+            --admin-surface-light: #353a45;
+            --admin-border-color: #404552;
+            --admin-text-primary: #e0e6f0;
+            --admin-text-secondary: #a0a8b8;
+            --admin-accent-primary: #00ff91; /* Green accent for admin */
+            --admin-accent-secondary: #1abc9c; /* Teal for info */
+            --admin-accent-danger: #e94560; /* Red for danger/warnings */
+            --font-family-main: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family-main);
+            background-color: var(--admin-bg-dark);
+            color: var(--admin-text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x:hidden;
+        }
+
+        .admin-sidebar {
+            width: 260px;
+            background-color: var(--admin-surface-dark);
+            padding: 20px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-right: 1px solid var(--admin-border-color);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            transition: width 0.3s ease;
+        }
+        .admin-sidebar-header {
+            padding:10px 0 20px 0;
+            text-align:center;
+            border-bottom: 1px solid var(--admin-border-color);
+            margin-bottom:20px;
+        }
+        .admin-sidebar-header a {
+            color: var(--admin-accent-primary);
+            font-size: 1.5em;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .admin-nav .nav-link {
+            color: var(--admin-text-secondary);
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        .admin-nav .nav-link .nav-icon { margin-right: 10px; width:20px; text-align:center;}
+        .admin-nav .nav-link:hover {
+            background-color: var(--admin-accent-primary);
+            color: var(--admin-bg-dark);
+        }
+        .admin-nav .nav-link.active-admin-link {
+            background-color: var(--admin-accent-primary);
+            color: var(--admin-bg-dark);
+            font-weight: 500;
+        }
+
+        .admin-main-content {
+            margin-left: 260px; /* Same as sidebar width */
+            padding: 30px;
+            width: calc(100% - 260px);
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            opacity:0;
+            animation: adminContentFadeIn 0.5s 0.2s ease-out forwards;
+        }
+        @@keyframes adminContentFadeIn {
+            to { opacity:1; }
+        }
+        
+        .admin-page-title {
+            color: var(--admin-accent-primary);
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            border-bottom: 2px solid var(--admin-border-color);
+            padding-bottom: 10px;
+        }
+
+        .table-admin {
+            background-color: var(--admin-surface-light);
+            color: var(--admin-text-primary);
+            border-radius:8px;
+            overflow:hidden; /* For rounded corners on table */
+        }
+        .table-admin th {
+            background-color: var(--admin-surface-dark);
+            color: var(--admin-accent-secondary);
+            border-bottom: 2px solid var(--admin-border-color) !important;
+        }
+        .table-admin td, .table-admin th {
+            border-color: var(--admin-border-color) !important;
+            vertical-align:middle;
+        }
+        .table-admin tbody tr:hover {
+            background-color: rgba(var(--admin-accent-primary-rgb, 0, 255, 145), 0.05); /* Assuming you add --admin-accent-primary-rgb */
+        }
+        .table-admin .btn-sm { padding: .25rem .6rem; font-size: .8rem; border-radius:4px;}
+        .btn-outline-admin-primary { color:var(--admin-accent-primary); border-color:var(--admin-accent-primary); }
+        .btn-outline-admin-primary:hover { background-color:var(--admin-accent-primary); color:var(--admin-bg-dark); }
+        .btn-outline-admin-secondary { color:var(--admin-accent-secondary); border-color:var(--admin-accent-secondary); }
+        .btn-outline-admin-secondary:hover { background-color:var(--admin-accent-secondary); color:var(--admin-bg-dark); }
+        .btn-admin-danger { background-color:var(--admin-accent-danger); color:white; border:none;}
+        .btn-admin-danger:hover { background-color: #c82333; } /* Darker red */
+
+
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Admin Panel</a>
+        </div>
+        <ul class="nav flex-column admin-nav">
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active-admin-link" : "")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    <i class="fas fa-tachometer-alt nav-icon"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "active-admin-link" : "")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
+                    <i class="fas fa-receipt nav-icon"></i> Manage Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active-admin-link" : "")" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                    <i class="fas fa-users-cog nav-icon"></i> Manage Users
+                </a>
+            </li>
+             <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Content" && ViewContext.RouteData.Values["action"]?.ToString() == "Players" ? "active-admin-link" : "")" asp-area="Admin" asp-controller="Content" asp-action="Players">
+                    <i class="fas fa-gamepad nav-icon"></i> Manage Players
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Content" && ViewContext.RouteData.Values["action"]?.ToString() == "Teams" ? "active-admin-link" : "")" asp-area="Admin" asp-controller="Content" asp-action="Teams">
+                    <i class="fas fa-users nav-icon"></i> Manage Teams
+                </a>
+            </li>
+            <li class="nav-item mt-auto pt-3" style="border-top:1px solid var(--admin-border-color);">
+                 <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-sign-out-alt nav-icon"></i> Back to Site
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main role="main" class="admin-main-content">
+        @RenderBody()
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

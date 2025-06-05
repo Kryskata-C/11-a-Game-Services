@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250604233706_AddOrderSchema")]
+    partial class AddOrderSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,13 +105,13 @@ namespace WebApplication1.Migrations
                             Id = "f9e8d7c6-b5a4-3333-2222-1111fedcba98",
                             AccessFailedCount = 0,
                             Balance = 0.00m,
-                            ConcurrencyStamp = "251488ce-b3b9-4c25-b727-356ce6393e90",
+                            ConcurrencyStamp = "44d51f88-5cde-4ab0-82f2-b109ec43f3fc",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOD5MKgqcGmemqzTCFi566wghKnI4ddyO0IQGuMcqXZY306Dj8xoXTg1kWdKGYfnQQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKQ2s1HpX3G5TNk4vVxEZsy/sEqIDklEZoVbFQqJsE76nWxqa0VpFstIbKMBpvpJNA==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "ABCDEF01-2345-6789-ABCD-EF0123456789",
                             TwoFactorEnabled = false,
@@ -383,7 +386,7 @@ namespace WebApplication1.Migrations
                         new
                         {
                             Id = 1,
-                            DateCreated = new DateTime(2025, 6, 5, 0, 18, 27, 762, DateTimeKind.Utc).AddTicks(5418),
+                            DateCreated = new DateTime(2025, 6, 4, 23, 37, 6, 244, DateTimeKind.Utc).AddTicks(6527),
                             Description = "The first team",
                             ImageUrl = "/images/default-team.png",
                             Name = "Team Alpha",
@@ -393,7 +396,7 @@ namespace WebApplication1.Migrations
                         new
                         {
                             Id = 2,
-                            DateCreated = new DateTime(2025, 6, 5, 0, 18, 27, 762, DateTimeKind.Utc).AddTicks(5423),
+                            DateCreated = new DateTime(2025, 6, 4, 23, 37, 6, 244, DateTimeKind.Utc).AddTicks(6534),
                             Description = "The second team",
                             ImageUrl = "/images/default-team.png",
                             Name = "Team Bravo",
@@ -508,7 +511,7 @@ namespace WebApplication1.Migrations
                             Id = 1,
                             CommentText = "Excellent communication and skill for ProGamerX!",
                             PlayerId = 1,
-                            ReviewDate = new DateTime(2025, 5, 31, 0, 18, 27, 762, DateTimeKind.Utc).AddTicks(5462),
+                            ReviewDate = new DateTime(2025, 5, 30, 23, 37, 6, 244, DateTimeKind.Utc).AddTicks(6577),
                             ReviewerName = "UserA",
                             StarRating = 5
                         },
@@ -517,7 +520,7 @@ namespace WebApplication1.Migrations
                             Id = 2,
                             CommentText = "Very professional (ProGamerX).",
                             PlayerId = 1,
-                            ReviewDate = new DateTime(2025, 6, 3, 0, 18, 27, 762, DateTimeKind.Utc).AddTicks(5469),
+                            ReviewDate = new DateTime(2025, 6, 2, 23, 37, 6, 244, DateTimeKind.Utc).AddTicks(6583),
                             ReviewerName = "UserB",
                             StarRating = 4
                         },
@@ -526,7 +529,7 @@ namespace WebApplication1.Migrations
                             Id = 3,
                             CommentText = "Great tactical mind (StrategistSupreme)!",
                             PlayerId = 2,
-                            ReviewDate = new DateTime(2025, 6, 2, 0, 18, 27, 762, DateTimeKind.Utc).AddTicks(5470),
+                            ReviewDate = new DateTime(2025, 6, 1, 23, 37, 6, 244, DateTimeKind.Utc).AddTicks(6585),
                             ReviewerName = "UserC",
                             StarRating = 5
                         });

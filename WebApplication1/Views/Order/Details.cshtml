@@ -1,0 +1,248 @@
+﻿@model WebApplication1.Models.Order
+@{
+    ViewData["Title"] = $"Order Details #{Model.OrderId}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentStatusIndex = (int)Model.Status;
+    string[] statusLabels = Enum.GetNames(typeof(OrderStatus));
+}
+
+@section Styles {
+    <style>
+        .order-details-container {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 30px;
+            background: var(--surface-color-opaque);
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: orderDetailsFadeIn 0.7s ease-out forwards;
+        }
+
+        @@keyframes orderDetailsFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .order-details-header {
+            color: var(--primary-accent-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        .order-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .order-info-block {
+            padding: 15px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 8px;
+        }
+
+            .order-info-block strong {
+                color: var(--secondary-color);
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .order-info-block span {
+                color: var(--text-color);
+            }
+
+        .order-status-tracker {
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        .order-status-heading {
+            font-size: 1.5em;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .status-timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+            .status-timeline::before { /* The connecting line */
+                content: '';
+                position: absolute;
+                top: 15px;
+                left: 5%;
+                width: 90%;
+                height: 4px;
+                background-color: var(--border-color);
+                z-index: 0;
+            }
+
+        .status-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 18%; /* Adjust for number of steps */
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            animation: statusStepAppear 0.5s ease-out forwards;
+        }
+
+        .status-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            border: 3px solid var(--surface-color-opaque);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .status-step.completed .status-dot, .status-step.current .status-dot {
+            background-color: var(--green-accent-color);
+            transform: scale(1.1);
+            box-shadow: 0 0 10px var(--green-accent-color);
+        }
+
+        .status-step.current .status-dot {
+            animation: pulseCurrentStatus 1.5s infinite;
+        }
+
+        .status-label {
+            font-size: 0.9em;
+            color: var(--text-muted-color);
+        }
+
+        .status-step.completed .status-label, .status-step.current .status-label {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        @@keyframes pulseCurrentStatus {
+            0%, 100% {
+                box-shadow: 0 0 10px var(--green-accent-color);
+            }
+
+            50% {
+                box-shadow: 0 0 20px var(--green-accent-color), 0 0 30px var(--green-accent-hover);
+            }
+        }
+
+        @@keyframes statusStepAppear {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .order-items-list th, .order-items-list td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .order-items-list th {
+            color: var(--secondary-color);
+            text-align: left;
+        }
+
+        .order-items-list .text-right {
+            text-align: right;
+        }
+
+        .order-details-actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+}
+
+<div class="order-details-container">
+    <h1 class="order-details-header">@ViewData["Title"]</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="order-info-grid">
+        <div class="order-info-block"><strong>Order ID:</strong> <span>#@Model.OrderId</span></div>
+        <div class="order-info-block"><strong>Order Date:</strong> <span>@Model.OrderDate.ToString("MMMM dd, yyyy - HH:mm")</span></div>
+        <div class="order-info-block"><strong>Order Total:</strong> <span style="color:var(--green-accent-color); font-weight:bold;">@Model.TotalPrice.ToString("C2")</span></div>
+        <div class="order-info-block"><strong>Current Status:</strong> <span style="color:var(--primary-color); font-weight:bold;">@Model.Status.ToString()</span></div>
+    </div>
+
+    <div class="order-status-tracker">
+        <h3 class="order-status-heading">Order Progress</h3>
+        <div class="status-timeline">
+            @for (int i = 0; i < statusLabels.Length; i++)
+            {
+                var statusName = statusLabels[i];
+                var stepClass = "";
+                if (i < currentStatusIndex) { stepClass = "completed"; }
+                else if (i == currentStatusIndex) { stepClass = "current"; }
+                <div class="status-step @stepClass" style="animation-delay:@(i*0.15)s;">
+                    <div class="status-dot"></div>
+                    <div class="status-label">@System.Text.RegularExpressions.Regex.Replace(statusName, "([A-Z])", " $1").Trim()</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <h3 class="details-section-title" style="text-align:left; margin-top:40px;">Items in this Order</h3>
+    @if (Model.OrderItems != null && Model.OrderItems.Any())
+    {
+        <table class="table order-items-list" style="background:rgba(0,0,0,0.1); border-radius:8px;">
+            <thead>
+                <tr>
+                    <th>Service/Player Hired</th>
+                    <th class="text-right">Quantity</th>
+                    <th class="text-right">Price Paid</th>
+                    <th class="text-right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.OrderItems)
+                {
+                    <tr>
+                        <td>@item.HiredServiceName</td>
+                        <td class="text-right">@item.Quantity</td>
+                        <td class="text-right">@item.PriceAtPurchase.ToString("C2")</td>
+                        <td class="text-right">@((item.Quantity * item.PriceAtPurchase).ToString("C2"))</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No items found for this order.</p>
+    }
+
+    <div class="order-details-actions">
+        <a asp-action="History" class="btn btn-secondary">Back to Order History</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-info">Continue Shopping</a>
+    </div>
+</div>

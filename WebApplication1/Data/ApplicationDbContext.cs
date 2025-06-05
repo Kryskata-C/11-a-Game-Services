@@ -15,6 +15,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Player> Players { get; set; }
     public DbSet<Team> Teams { get; set; }
     public DbSet<Review> Reviews { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -47,7 +49,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
             entity.Property(t => t.PricePerHour).HasColumnType("decimal(18,2)");
         });
+        builder.Entity<Order>(entity =>
+        {
+            entity.HasOne(o => o.User)
+                  .WithMany() 
+                  .HasForeignKey(o => o.UserId)
+                  .IsRequired();
 
+            entity.HasMany(o => o.OrderItems)
+                  .WithOne(oi => oi.Order)
+                  .HasForeignKey(oi => oi.OrderId)
+                  .IsRequired();
+        });
+
+        builder.Entity<OrderItem>(entity =>
+        {
+        });
         builder.Entity<Review>(entity =>
         {
             entity.HasOne(r => r.Player)

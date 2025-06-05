@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using WebApplication1.Models; 
@@ -116,6 +117,51 @@ namespace WebApplication1.Controllers
             }
 
             return View(model);
+        }
+        [HttpPost]
+        [Authorize] 
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Deposit(DepositViewModel model) 
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                }
+
+                user.Balance += model.Amount;
+
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (updateResult.Succeeded)
+                {
+                    _logger.LogInformation($"User '{user.UserName}' deposited {model.Amount:C}. New balance: {user.Balance:C}.");
+                    TempData["SuccessMessage"] = $"Successfully deposited {model.Amount:C}. Your new balance is {user.Balance:C}.";
+
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "There was an error processing your deposit. Please try again.";
+                    foreach (var error in updateResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                        _logger.LogError($"Error updating user balance for '{user.UserName}': {error.Description}");
+                    }
+                }
+            }
+            else
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                TempData["ErrorMessage"] = "Invalid deposit amount. " + string.Join(" ", errors);
+            }
+
+            string returnUrl = Request.Headers["Referer"].ToString();
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            return RedirectToAction("Index", "Home"); 
         }
 
         [HttpPost]

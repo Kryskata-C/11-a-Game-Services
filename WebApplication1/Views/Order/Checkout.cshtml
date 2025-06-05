@@ -1,0 +1,225 @@
+﻿@model WebApplication1.Models.CheckoutViewModel
+@{
+    ViewData["Title"] = "Confirm Your Order";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .checkout-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: var(--surface-color-opaque); 
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: checkoutFadeIn 0.7s ease-out forwards;
+        }
+
+        @@keyframes checkoutFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .checkout-header {
+            color: var(--primary-accent-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 0 0 10px var(--primary-accent-color);
+        }
+
+        .order-summary-table {
+            width: 100%;
+            margin-bottom: 25px;
+            border-collapse: collapse;
+        }
+
+            .order-summary-table th, .order-summary-table td {
+                padding: 12px 15px;
+                text-align: left;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .order-summary-table th {
+                color: var(--secondary-accent-color);
+                font-weight: 600;
+                background-color: rgba(0,0,0,0.1);
+            }
+
+            .order-summary-table td {
+                color: var(--text-color);
+            }
+
+            .order-summary-table .text-right {
+                text-align: right;
+            }
+
+            .order-summary-table tfoot td {
+                font-weight: bold;
+                color: var(--text-light);
+            }
+
+            .order-summary-table tfoot .order-total {
+                font-size: 1.4em;
+                color: var(--green-accent-color);
+            }
+
+        .balance-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 8px;
+        }
+
+            .balance-info p {
+                margin-bottom: 5px;
+                font-size: 1.1em;
+            }
+
+            .balance-info strong {
+                color: var(--green-accent-color);
+            }
+
+        .insufficient-funds {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .checkout-actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+            .checkout-actions .btn-place-order {
+                background: linear-gradient(45deg, var(--green-accent-color), var(--green-accent-hover));
+                color: var(--background-dark-1);
+                padding: 12px 30px;
+                font-size: 1.2em;
+                font-weight: bold;
+                border-radius: 50px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+                .checkout-actions .btn-place-order:disabled {
+                    background: #555;
+                    color: #888;
+                    cursor: not-allowed;
+                }
+
+            .checkout-actions .btn-back-to-basket {
+                background-color: var(--text-muted-color);
+                color: var(--background-dark-1);
+                margin-right: 15px;
+            }
+
+        .alert-danger, .alert-success { 
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.5);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .alert-success {
+            background-color: rgba(26, 188, 156, 0.5);
+            border-left: 5px solid var(--secondary-color);
+        }
+
+    </style>
+}
+
+<div class="checkout-container">
+    <h1 class="checkout-header">@ViewData["Title"]</h1>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    @if (Model != null && Model.Items.Any())
+    {
+        <h3 style="color:var(--secondary-color); margin-bottom:15px;">Order Summary</h3>
+        <table class="order-summary-table">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th class="text-right">Quantity</th>
+                    <th class="text-right">Price/Unit</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ServiceName</td>
+                        <td class="text-right">@item.Quantity</td>
+                        <td class="text-right">@item.PricePerUnit.ToString("C0")</td>
+                        <td class="text-right">@item.TotalPrice.ToString("C0")</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-right order-total-label">Grand Total:</td>
+                    <td class="text-right order-total">@Model.OrderTotal.ToString("C0")</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="balance-info">
+            <p>Your current balance: <strong>@Model.UserBalance.ToString("C2")</strong></p>
+            @if (!Model.CanAfford)
+            {
+                <p class="insufficient-funds">You have insufficient funds for this order.</p>
+                <p><a asp-controller="Account" asp-action="DepositPageAction" class="btn btn-sm btn-outline-light">Deposit Funds</a></p>
+            }
+            else
+            {
+                <p>Balance after purchase: <strong>@((Model.UserBalance - Model.OrderTotal).ToString("C2"))</strong></p>
+            }
+        </div>
+
+        <div class="checkout-actions">
+            <a asp-controller="Home" asp-action="Basket" class="btn btn-back-to-basket">Back to Basket</a>
+            @if (Model.CanAfford)
+            {
+                <form asp-action="PlaceOrder" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-place-order">Confirm & Place Order</button>
+                </form>
+            }
+            else
+            {
+                <button type="button" class="btn btn-place-order" disabled>Insufficient Funds</button>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-center" style="font-size:1.2em;">Your checkout is empty. Please add items to your basket first.</p>
+        <div class="checkout-actions">
+            <a asp-controller="Players" asp-action="PlayerHire" class="btn btn-secondary">Browse Players</a>
+        </div>
+    }
+</div>

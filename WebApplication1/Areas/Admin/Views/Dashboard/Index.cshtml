@@ -1,0 +1,162 @@
+﻿@using WebApplication1.Utilities 
+@using WebApplication1.Models  
+@model PaginatedList<WebApplication1.Models.Order>
+@{
+    ViewData["Title"] = "Manage Orders";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+<style>
+    .status-pending { color: #ffc107; font-weight:bold; } 
+    .status-processing { color: #0dcaf0; font-weight:bold; } 
+    .status-serviceinprogress { color: #fd7e14; font-weight:bold; } 
+    .status-completed { color: var(--admin-accent-primary); font-weight:bold; } 
+    .status-cancelled { color: var(--admin-accent-danger); font-weight:bold; } 
+    .status-paymentfailed { color: #dc3545; font-weight:bold; } 
+
+    .filter-form .form-control, .filter-form .form-select, .filter-form .btn {
+        font-size:0.9rem;
+        padding: 0.4rem 0.8rem;
+    }
+    .table-admin th a { color:inherit; text-decoration:none; }
+    .table-admin th a:hover { color:var(--admin-accent-primary); }
+
+    .pagination .page-item .page-link {
+        background-color: var(--admin-surface-light);
+        border: 1px solid var(--admin-border-color);
+        color: var(--admin-text-secondary);
+        margin: 0 2px;
+        border-radius: 4px;
+    }
+    .pagination .page-item .page-link:hover {
+        background-color: var(--admin-accent-secondary);
+        color: var(--admin-bg-dark); 
+        border-color: var(--admin-accent-secondary);
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--admin-accent-primary);
+        color: var(--admin-bg-dark); 
+        border-color: var(--admin-accent-primary);
+        font-weight:bold;
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        background-color: transparent;
+        border-color: var(--admin-border-color);
+    }
+    .alert-success {
+        background-color: rgba(0, 255, 145, 0.15); 
+        color: var(--admin-accent-primary);
+        border: 1px solid var(--admin-accent-primary);
+        border-left-width: 5px;
+    }
+    .alert-info { 
+         background-color: rgba(23, 162, 184, 0.1);
+         color: #0dcaf0;
+         border: 1px solid #0dcaf0;
+         border-left-width: 5px;
+    }
+
+</style>
+}
+
+<h1 class="admin-page-title">@ViewData["Title"]</h1>
+
+@if (TempData["AdminSuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["AdminSuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="Index" method="get" class="mb-3 filter-form p-3" style="background-color: var(--admin-surface-light); border-radius: 8px;">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label for="searchString" class="form-label visually-hidden">Search</label>
+            <input type="text" id="searchString" name="searchString" value="@ViewData["CurrentFilter"]" class="form-control" placeholder="Search by User or Order ID..." />
+        </div>
+        <div class="col-md-4">
+            <label for="statusFilter" class="form-label visually-hidden">Status</label>
+            <select id="statusFilter" name="statusFilter" asp-items="Html.GetEnumSelectList<WebApplication1.Models.OrderStatus>()" class="form-select">
+                <option value="">All Statuses</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-admin-primary w-100">Filter / Search</button>
+        </div>
+    </div>
+</form>
+
+@if (Model != null && Model.Any())
+{
+    <div class="table-responsive shadow-sm" style="border-radius: 8px; overflow: hidden;">
+        <table class="table table-admin table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th><a asp-action="Index" asp-route-sortOrder="@ViewData["DateSortParm"]" asp-route-currentFilter="@ViewData["CurrentFilter"]" asp-route-statusFilter="@ViewData["CurrentStatusFilter"]">Order Date</a></th>
+                    <th>Order ID</th>
+                    <th><a asp-action="Index" asp-route-sortOrder="@ViewData["UserSortParm"]" asp-route-currentFilter="@ViewData["CurrentFilter"]" asp-route-statusFilter="@ViewData["CurrentStatusFilter"]">User</a></th>
+                    <th class="text-end"><a asp-action="Index" asp-route-sortOrder="@ViewData["PriceSortParm"]" asp-route-currentFilter="@ViewData["CurrentFilter"]" asp-route-statusFilter="@ViewData["CurrentStatusFilter"]">Total Price</a></th>
+                    <th><a asp-action="Index" asp-route-sortOrder="@ViewData["StatusSortParm"]" asp-route-currentFilter="@ViewData["CurrentFilter"]" asp-route-statusFilter="@ViewData["CurrentStatusFilter"]">Status</a></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td>@order.OrderDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>#@order.OrderId</td>
+                        <td>@order.User?.UserName</td>
+                        <td class="text-end">@order.TotalPrice.ToString("C2")</td>
+                        <td><span class="status-@order.Status.ToString().ToLower()">@order.Status.ToString()</span></td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@order.OrderId" class="btn btn-sm btn-outline-admin-secondary">Details</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+
+    <nav aria-label="Order list navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @prevDisabled">
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["CurrentSort"]?.ToString()"
+                   asp-route-pageNumber="@(Model.PageIndex - 1)"
+                   asp-route-currentFilter="@ViewData["CurrentFilter"]?.ToString()"
+                   asp-route-statusFilter="@ViewData["CurrentStatusFilter"]?.ToString()"
+                   class="page-link">Previous</a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a asp-action="Index"
+                       asp-route-sortOrder="@ViewData["CurrentSort"]?.ToString()"
+                       asp-route-pageNumber="@i"
+                       asp-route-currentFilter="@ViewData["CurrentFilter"]?.ToString()"
+                       asp-route-statusFilter="@ViewData["CurrentStatusFilter"]?.ToString()"
+                       class="page-link">@i</a>
+                </li>
+            }
+            <li class="page-item @nextDisabled">
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["CurrentSort"]?.ToString()"
+                   asp-route-pageNumber="@(Model.PageIndex + 1)"
+                   asp-route-currentFilter="@ViewData["CurrentFilter"]?.ToString()"
+                   asp-route-statusFilter="@ViewData["CurrentStatusFilter"]?.ToString()"
+                   class="page-link">Next</a>
+            </li>
+        </ul>
+    </nav>
+}
+else
+{
+    <div class="alert alert-info text-center mt-4">No orders found matching your criteria.</div>
+}

@@ -1,0 +1,120 @@
+﻿@model WebApplication1.Models.Order
+@{
+    ViewData["Title"] = $"Order Details #{Model.OrderId}";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    var currentStatusValue = (int)Model.Status;
+}
+
+@section Styles {
+    <style>
+        .order-detail-card {
+            background-color: var(--admin-surface-light);
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+            .order-detail-card h5 {
+                color: var(--admin-accent-secondary);
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid var(--admin-border-color);
+            }
+
+            .order-detail-card p {
+                margin-bottom: 8px;
+            }
+
+            .order-detail-card strong {
+                color: var(--admin-text-primary);
+            }
+
+        .order-items-table th {
+            color: var(--admin-accent-primary);
+        }
+
+        .status-update-form .form-select {
+            max-width: 300px;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .status-update-form .btn {
+            vertical-align: baseline;
+        }
+    </style>
+}
+
+<h1 class="admin-page-title">@ViewData["Title"]</h1>
+
+@if (TempData["AdminSuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["AdminSuccessMessage"]</div>
+}
+@if (TempData["AdminErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["AdminErrorMessage"]</div>
+}
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="order-detail-card">
+            <h5>Order Information</h5>
+            <p><strong>Order ID:</strong> @Model.OrderId</p>
+            <p><strong>User:</strong> @Model.User?.UserName (ID: @Model.UserId)</p>
+            <p><strong>Order Date:</strong> @Model.OrderDate.ToString("dd MMMM yyyy, HH:mm")</p>
+            <p><strong>Total Price:</strong> @Model.TotalPrice.ToString("C2")</p>
+            <p><strong>Current Status:</strong> <strong style="color:var(--admin-accent-primary);">@Model.Status.ToString()</strong></p>
+        </div>
+
+        <div class="order-detail-card mt-3">
+            <h5>Update Order Status</h5>
+            <form asp-action="UpdateStatus" method="post" class="status-update-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderId" value="@Model.OrderId" />
+                <div class="mb-3">
+                    <label for="status" class="form-label">New Status:</label>
+                    <select name="status" asp-for="Status" asp-items="ViewBag.OrderStatuses" class="form-select"></select>
+                    <button type="submit" class="btn btn-outline-admin-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="order-detail-card">
+            <h5>Order Items (@Model.OrderItems.Count)</h5>
+            @if (Model.OrderItems.Any())
+            {
+                <table class="table table-sm table-admin order-items-table">
+                    <thead>
+                        <tr>
+                            <th>Service/Item</th>
+                            <th class="text-end">Qty</th>
+                            <th class="text-end">Price</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <tr>
+                                <td>@item.HiredServiceName</td>
+                                <td class="text-end">@item.Quantity</td>
+                                <td class="text-end">@item.PriceAtPurchase.ToString("C2")</td>
+                                <td class="text-end">@((item.Quantity * item.PriceAtPurchase).ToString("C2"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No items in this order.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-outline-admin-secondary">Back to Orders List</a>
+</div>

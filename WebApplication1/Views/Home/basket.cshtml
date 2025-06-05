@@ -1,52 +1,314 @@
-﻿    @model Dictionary<string, int>
-    @{
-        ViewData["Title"] = "Basket";
-        Layout = "~/Views/Shared/_Layout.cshtml";
-        var playersPrices = ViewBag.PlayersPrices as Dictionary<string, int>;
-        var totalBasketPrice = 0;
+﻿@model Dictionary<string, int>
+@{
+    ViewData["Title"] = "Your Shopping Basket";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var playersPrices = ViewBag.PlayersPrices as Dictionary<string, int>;
+    decimal totalBasketPriceDecimal = 0; // Use decimal for currency
+}
+
+@section Styles {
+    <style>
+        :root { /* Fallback if not inherited from _Layout.cshtml */
+            --primary-color: #e94560;
+            --secondary-color: #1abc9c;
+            --green-accent-color: #00ff91;
+            --text-color: #e0e0e0;
+            --text-muted-color: #a0a0b0;
+            --surface-color: rgba(22, 33, 62, 0.85);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --animation-duration: 0.5s;
+        }
+
+        .basket-page-container { /* Main wrapper for the basket page */
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background: var(--surface-color);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: basketFadeIn var(--animation-duration) ease-out forwards;
+        }
+
+        @@keyframes basketFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .basket-header-title {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 0 0 10px var(--primary-color);
+            animation: pulsateBasketTitle 3s infinite alternate;
+        }
+
+        @@keyframes pulsateBasketTitle { /* Consistent with other page titles */
+            0% {
+                text-shadow: 0 0 8px var(--primary-color), 0 0 12px var(--primary-color);
+            }
+
+            100% {
+                text-shadow: 0 0 12px var(--primary-color), 0 0 20px var(--primary-hover-color);
+            }
+        }
+
+        .basket-items-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .basket-item {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--secondary-color);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            animation: basketItemAppear 0.4s ease-out forwards;
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        @@keyframes basketItemAppear {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .basket-item-details {
+            flex-grow: 1;
+        }
+
+        .basket-item-playername {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+
+        .basket-item-meta {
+            font-size: 0.9em;
+            color: var(--text-muted-color);
+        }
+
+        .basket-item-quantity,
+        .basket-item-price,
+        .basket-item-total {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: var(--text-color);
+            text-align: right;
+            min-width: 120px; /* Ensure alignment */
+            padding: 5px 10px;
+        }
+
+        .basket-item-total {
+            color: var(--secondary-color);
+            font-weight: 700;
+        }
+
+        .basket-summary {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+            text-align: right;
+            animation: basketItemAppear 0.4s ease-out forwards; /* Reuse animation */
+            animation-delay: 0.3s; /* Delay for summary */
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        .basket-total-label {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: var(--text-muted-color);
+            margin-right: 15px;
+        }
+
+        .basket-total-amount {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--green-accent-color); /* Green for total */
+            text-shadow: 0 0 8px var(--green-accent-color);
+        }
+
+        .basket-actions {
+            margin-top: 30px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between; /* Space out buttons */
+            flex-wrap: wrap;
+            gap: 15px; /* Gap between buttons */
+            animation: basketItemAppear 0.4s ease-out forwards;
+            animation-delay: 0.4s;
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+            .basket-actions .btn {
+                padding: 10px 25px;
+                font-size: 1em;
+                border-radius: 50px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-weight: bold;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+                .basket-actions .btn:hover {
+                    transform: scale(1.05) translateY(-2px);
+                }
+
+        .continue-shopping-btn { /* Specific style if needed */
+            background-color: var(--text-muted-color);
+            color: var(--background-dark-1);
+        }
+
+            .continue-shopping-btn:hover {
+                background-color: #b0b0b0; /* Lighter gray on hover */
+                box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+            }
+
+        .checkout-btn {
+            background: linear-gradient(45deg, var(--green-accent-color), var(--green-accent-hover));
+            color: var(--background-dark-1);
+        }
+
+            .checkout-btn:hover {
+                box-shadow: 0 6px 20px rgba(0, 255, 144, 0.4);
+            }
+
+        .empty-basket-message {
+            text-align: center;
+            font-size: 1.3em;
+            color: var(--text-muted-color);
+            padding: 40px 20px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+            border: 1px dashed var(--border-color);
+            animation: basketFadeIn 0.5s ease-out forwards;
+        }
+
+        /* Responsive table/list items for smaller screens */
+        @@media (max-width: 767px) {
+            .basket-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .basket-item-details {
+                margin-bottom: 10px;
+                width: 100%;
+            }
+
+            .basket-item-quantity,
+            .basket-item-price,
+            .basket-item-total {
+                text-align: left;
+                min-width: unset;
+                width: 100%;
+                padding: 5px 0;
+                border-top: 1px solid var(--border-color);
+                margin-top: 5px;
+            }
+
+                .basket-item-quantity::before {
+                    content: "Qty: ";
+                    font-weight: bold;
+                    color: var(--text-muted-color);
+                }
+
+                .basket-item-price::before {
+                    content: "Price/hr: ";
+                    font-weight: bold;
+                    color: var(--text-muted-color);
+                }
+
+                .basket-item-total::before {
+                    content: "Total: ";
+                    font-weight: bold;
+                    color: var(--text-muted-color);
+                }
+
+            .basket-summary {
+                text-align: center;
+            }
+
+            .basket-total-label, .basket-total-amount {
+                display: block;
+                margin: 5px 0;
+            }
+
+            .basket-actions {
+                flex-direction: column;
+            }
+
+                .basket-actions .btn {
+                    width: 100%;
+                    margin-bottom: 10px;
+                }
+        }
+
+    </style>
+}
+
+<div class="basket-page-container">
+    <h1 class="basket-header-title">@ViewData["Title"]</h1>
+
+    @if (Model != null && Model.Any() && playersPrices != null)
+    {
+        <ul class="basket-items-list">
+            @foreach (var item in Model)
+            {
+                if (playersPrices.TryGetValue(item.Key, out int pricePerHour))
+                {
+                    var playerTotalPrice = pricePerHour * item.Value;
+                    totalBasketPriceDecimal += playerTotalPrice;
+                    <li class="basket-item" style="animation-delay: @(Model.ToList().IndexOf(item) * 0.08)s;">
+                        <div class="basket-item-details">
+                            <div class="basket-item-playername">@item.Key</div>
+                            <div class="basket-item-meta">
+                                <span class="item-qty">Quantity: @item.Value</span> |
+                                <span class="item-price-hr">Price: @pricePerHour.ToString("C0")/hr</span>
+                            </div>
+                        </div>
+                        <div class="basket-item-total">@playerTotalPrice.ToString("C0")</div>
+                    </li>
+                }
+            }
+        </ul>
+
+        <div class="basket-summary">
+            <span class="basket-total-label">Grand Total:</span>
+            <span class="basket-total-amount">@totalBasketPriceDecimal.ToString("C0")</span>
+        </div>
+
+        <div class="basket-actions">
+            <a href="@Url.Action("PlayerHire", "Players")" class="btn continue-shopping-btn">Continue Shopping</a>
+            <a asp-controller="Order" asp-action="Checkout" class="btn checkout-btn">Proceed to Checkout</a>
+        </div>
     }
-
-    <link rel="stylesheet" href="~/css/basket.css" asp-append-version="true" />
-
-    <div class="basket-container">
-        <h2>Your Basket</h2>
-
-        @if (Model != null && Model.Count > 0)
-        {
-            <table class="basket-table">
-                <thead>
-                    <tr>
-                        <th>Player</th>
-                        <th>Quantity</th>
-                        <th>Price per hour</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        var playerTotalPrice = playersPrices[item.Key] * item.Value;
-                        totalBasketPrice += playerTotalPrice;
-                        <tr>
-                            <td>@item.Key</td>
-                            <td>@item.Value</td>
-                            <td>$@playersPrices[item.Key]</td>
-                            <td>$@playerTotalPrice</td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr class="total-row">
-                        <td colspan="3">Basket Total:</td>
-                        <td>$@totalBasketPrice</td>
-                    </tr>
-                </tfoot>
-            </table>
-        }
-        else
-        {
-            <p class="empty-basket">Your basket is empty.</p>
-        }
-
-        <a href="@Url.Action("PlayerHire", "Home")" class="continue-btn">Continue Shopping</a>
-    </div>
+    else
+    {
+        <p class="empty-basket-message">Your basket is currently empty. Time to hire some talent!</p>
+        <div class="basket-actions" style="justify-content:center;">
+            <a href="@Url.Action("PlayerHire", "Players")" class="btn continue-shopping-btn">Browse Players</a>
+        </div>
+    }
+</div>
